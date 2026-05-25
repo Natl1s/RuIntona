@@ -1,0 +1,56 @@
+{
+  "saved_at": "2026-05-19T15:36:02",
+  "model_name": "Aniemore/wavlm-bert-fusion-s-emotion-russian-resd",
+  "lmdb_path": "/run/media/syori/500G/dusha/dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/dusha_resd_test.lmdb",
+  "device": "cuda",
+  "metrics": {
+    "loss": 1.8692852713628398,
+    "accuracy": 0.5521463119709794,
+    "wa": 0.5521463119709794,
+    "balanced_accuracy": 0.522866529549258,
+    "uar": 0.522866529549258,
+    "precision_macro": 0.5674186134508079,
+    "recall_macro": 0.522866529549258,
+    "f1_macro": 0.503421692461116,
+    "f1_weighted": 0.5262318427463116,
+    "mcc": 0.40364036624945465,
+    "top2_accuracy": 0.8039600967351874,
+    "roc_auc_ovr_macro": 0.7782055264273939,
+    "log_loss": 1.8692852760273442
+  },
+  "classification_report_text": "              precision    recall  f1-score   support\n\n       angry     0.6767    0.2765    0.3926      1378\n         sad     0.6320    0.8577    0.7278      2213\n     neutral     0.5603    0.3087    0.3981      1730\n    positive     0.4006    0.6486    0.4953      1295\n\n    accuracy                         0.5521      6616\n   macro avg     0.5674    0.5229    0.5034      6616\nweighted avg     0.5773    0.5521    0.5262      6616\n",
+  "confusion_matrix": [
+    [
+      381,
+      181,
+      64,
+      752
+    ],
+    [
+      21,
+      1898,
+      174,
+      120
+    ],
+    [
+      32,
+      779,
+      534,
+      385
+    ],
+    [
+      129,
+      145,
+      181,
+      840
+    ]
+  ],
+  "label_names": [
+    "angry",
+    "sad",
+    "neutral",
+    "positive"
+  ],
+  "samples_used": 6616,
+  "samples_skipped": {}
+}
