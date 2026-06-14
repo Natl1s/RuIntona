@@ -6,6 +6,7 @@ import random
 import re
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import numpy as np
 import joblib
@@ -20,6 +21,14 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 
@@ -341,15 +350,17 @@ def _save_results(
     alpha_search: list[dict],
     val_result: dict,
     test_result: dict,
-) -> Path:
+) -> tuple[Path, Path]:
     results_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = results_dir / f"late_fusion_baseline_results_{stamp}.json"
+    weights_path = results_dir / f"late_fusion_baseline_weights_{stamp}.json"
 
     payload = {
         "saved_at": datetime.now().isoformat(timespec="seconds"),
         "best_alpha": float(best_alpha),
         "best_val_f1_macro": float(best_val_f1),
+        "weights_path": str(weights_path),
         "alpha_search": alpha_search,
         "args": {
             "train_lmdb": str(args.train_lmdb),
@@ -367,7 +378,30 @@ def _save_results(
         "test": test_result,
     }
     out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    return out_path
+
+    weights_payload = {
+        "saved_at": datetime.now().isoformat(timespec="seconds"),
+        "best_alpha": float(best_alpha),
+        "best_val_f1_macro": float(best_val_f1),
+        "audio_weight": float(best_alpha),
+        "text_weight": float(1.0 - best_alpha),
+        "args": {
+            "train_lmdb": str(args.train_lmdb),
+            "test_lmdb": str(args.test_lmdb),
+            "audio_model_path": str(args.audio_model_path),
+            "audio_scaler_path": str(args.audio_scaler_path),
+            "text_model_path": str(args.text_model_path),
+            "text_vectorizer_path": str(args.text_vectorizer_path),
+            "batch_size": int(args.batch_size),
+            "val_size": float(args.val_size),
+            "alpha_step": float(args.alpha_step),
+            "seed": int(args.seed),
+        },
+    }
+    weights_path.write_text(
+        json.dumps(weights_payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return out_path, weights_path
 
 
 def main():
@@ -479,7 +513,7 @@ def main():
     val_result = print_eval("LATE FUSION @ VAL", y_val, val_best["y_pred"], val_best["metrics"])
     test_result = print_eval("LATE FUSION @ TEST", y_test, test_best["y_pred"], test_best["metrics"])
 
-    results_path = _save_results(
+    results_path, weights_path = _save_results(
         results_dir=args.results_dir,
         args=args,
         best_alpha=best_alpha,
@@ -489,6 +523,7 @@ def main():
         test_result=test_result,
     )
     print(f"\nРезультаты сохранены: {results_path}")
+    print(f"Весовые коэффициенты сохранены: {weights_path}")
 
 
 if __name__ == "__main__":

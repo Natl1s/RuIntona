@@ -28,8 +28,12 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, Wav2Vec2Model, get_linear_schedule_with_warmup
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(PROJECT_ROOT) not in sys.path:
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
@@ -74,6 +78,8 @@ DEFAULT_AUDIO_WARM_START_PATH = (
 )
 
 DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
+MODELS_DIR = Path(__file__).resolve().parent / "models_params"
+MODEL_NAME = Path(__file__).stem
 TARGET_NAMES = ["angry", "sad", "neutral", "positive"]
 TARGET_SAMPLE_RATE = 16000
 
@@ -893,9 +899,15 @@ def _save_artifacts(
     text_model_params: dict,
 ) -> tuple[Path, Path]:
     results_dir.mkdir(parents=True, exist_ok=True)
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_path = results_dir / f"co_attention_baseline_model_{stamp}.pt"
     report_path = results_dir / f"co_attention_baseline_results_{stamp}.json"
+    dataset_name = Path(args.train_lmdb).stem
+    full_model_name = f"{MODEL_NAME}_{dataset_name}"
+    weights_path = MODELS_DIR / f"{full_model_name}_model.pt"
+    weights_backup_path = MODELS_DIR / f"{full_model_name}_model_{stamp}.pt"
+    weights_report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
 
     model_payload = {
         "saved_at": datetime.now().isoformat(timespec="seconds"),
@@ -915,44 +927,73 @@ def _save_artifacts(
     }
     torch.save(model_payload, model_path)
 
+    torch.save(model.state_dict(), weights_path)
+    torch.save(model.state_dict(), weights_backup_path)
+
+    args_payload = {
+        "train_lmdb": str(args.train_lmdb),
+        "test_lmdb": str(args.test_lmdb),
+        "text_model_path": str(args.text_model_path),
+        "audio_pretrained_name": str(args.audio_pretrained_name),
+        "audio_warm_start_path": (
+            str(args.audio_warm_start_path) if args.audio_warm_start_path is not None else None
+        ),
+        "batch_size": int(args.batch_size),
+        "val_size": float(args.val_size),
+        "epochs": int(args.epochs),
+        "stage1_epochs": int(args.stage1_epochs),
+        "lr_head": float(args.lr_head),
+        "lr_encoder": float(args.lr_encoder),
+        "weight_decay": float(args.weight_decay),
+        "d_model": int(args.d_model),
+        "num_heads": int(args.num_heads),
+        "num_coattn_blocks": int(args.num_coattn_blocks),
+        "dropout": float(args.dropout),
+        "ffn_mult": int(args.ffn_mult),
+        "max_len": int(args.max_len) if args.max_len is not None else None,
+        "min_crop_sec": float(args.min_crop_sec),
+        "max_crop_sec": float(args.max_crop_sec),
+        "use_class_weights": bool(args.use_class_weights),
+        "seed": int(args.seed),
+        "device": str(args.device),
+        "unfreeze_audio_layers": int(args.unfreeze_audio_layers),
+        "unfreeze_text_layers": int(args.unfreeze_text_layers),
+        "grad_clip_norm": float(args.grad_clip_norm),
+        "warmup_ratio": float(args.warmup_ratio),
+        "gradient_checkpointing": bool(args.gradient_checkpointing),
+    }
+    training_params = dict(args_payload)
+    training_params.update(
+        {
+            "best_epoch": int(best_epoch),
+            "best_val_f1_macro": float(best_val_f1),
+            "text_backbone_name": text_model_params["backbone_name"],
+        }
+    )
+    weights_report_lines = [
+        f"model_name: {MODEL_NAME}",
+        f"dataset_name: {dataset_name}",
+        f"saved_at: {stamp}",
+        "",
+        "training_params:",
+        json.dumps(training_params, ensure_ascii=False, indent=2),
+        "",
+        "test_metrics:",
+        json.dumps(test_export.get("metrics", {}), ensure_ascii=False, indent=2),
+        "",
+    ]
+    weights_report_path.write_text("\n".join(weights_report_lines), encoding="utf-8")
+
     payload = {
         "saved_at": datetime.now().isoformat(timespec="seconds"),
         "best_epoch": int(best_epoch),
         "best_val_f1_macro": float(best_val_f1),
+        "weights_path": str(weights_path),
+        "weights_backup_path": str(weights_backup_path),
+        "weights_report_path": str(weights_report_path),
         "saved_model_path": str(model_path),
         "history": history,
-        "args": {
-            "train_lmdb": str(args.train_lmdb),
-            "test_lmdb": str(args.test_lmdb),
-            "text_model_path": str(args.text_model_path),
-            "audio_pretrained_name": str(args.audio_pretrained_name),
-            "audio_warm_start_path": (
-                str(args.audio_warm_start_path) if args.audio_warm_start_path is not None else None
-            ),
-            "batch_size": int(args.batch_size),
-            "val_size": float(args.val_size),
-            "epochs": int(args.epochs),
-            "stage1_epochs": int(args.stage1_epochs),
-            "lr_head": float(args.lr_head),
-            "lr_encoder": float(args.lr_encoder),
-            "weight_decay": float(args.weight_decay),
-            "d_model": int(args.d_model),
-            "num_heads": int(args.num_heads),
-            "num_coattn_blocks": int(args.num_coattn_blocks),
-            "dropout": float(args.dropout),
-            "ffn_mult": int(args.ffn_mult),
-            "max_len": int(args.max_len) if args.max_len is not None else None,
-            "min_crop_sec": float(args.min_crop_sec),
-            "max_crop_sec": float(args.max_crop_sec),
-            "use_class_weights": bool(args.use_class_weights),
-            "seed": int(args.seed),
-            "device": str(args.device),
-            "unfreeze_audio_layers": int(args.unfreeze_audio_layers),
-            "unfreeze_text_layers": int(args.unfreeze_text_layers),
-            "grad_clip_norm": float(args.grad_clip_norm),
-            "warmup_ratio": float(args.warmup_ratio),
-            "gradient_checkpointing": bool(args.gradient_checkpointing),
-        },
+        "args": args_payload,
         "train": train_export,
         "val": val_export,
         "test": test_export,

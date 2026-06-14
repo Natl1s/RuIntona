@@ -2,10 +2,10 @@ import argparse
 import json
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import joblib
 import numpy as np
-from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -20,6 +20,16 @@ from sklearn.metrics import (
     roc_auc_score,
     top_k_accuracy_score,
 )
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
 
 try:
     from tqdm import tqdm

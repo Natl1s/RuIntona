@@ -27,8 +27,12 @@ from sklearn.metrics import (
 from tqdm import tqdm
 from transformers import HubertForSequenceClassification, Wav2Vec2FeatureExtractor
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(PROJECT_ROOT) not in sys.path:
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index

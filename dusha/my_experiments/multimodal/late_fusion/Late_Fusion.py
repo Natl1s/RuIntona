@@ -6,6 +6,7 @@ import random
 import re
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import numpy as np
 import torch
@@ -22,6 +23,14 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 from transformers import AutoTokenizer
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
@@ -65,6 +74,7 @@ DEFAULT_TEXT_MODEL_PATH = (
     / "RuBERT_dusha_resd_train_model.pt"
 )
 
+DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
 TARGET_NAMES = ["angry", "sad", "neutral", "positive"]
 
 
@@ -364,12 +374,53 @@ def print_eval(title: str, y_true: np.ndarray, y_pred: np.ndarray, metrics: dict
     print(confusion_matrix(y_true, y_pred, labels=list(range(len(TARGET_NAMES)))))
 
 
+def _save_fusion_weights(
+    results_dir: Path,
+    args,
+    best_alpha: float,
+    best_val_f1: float,
+    val_metrics: dict,
+    test_metrics: dict,
+) -> Path:
+    results_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    weights_path = results_dir / f"late_fusion_weights_{stamp}.json"
+
+    payload = {
+        "saved_at": datetime.now().isoformat(timespec="seconds"),
+        "best_alpha": float(best_alpha),
+        "best_val_f1_macro": float(best_val_f1),
+        "audio_weight": float(best_alpha),
+        "text_weight": float(1.0 - best_alpha),
+        "args": {
+            "train_lmdb": str(args.train_lmdb),
+            "test_lmdb": str(args.test_lmdb),
+            "audio_model_path": str(args.audio_model_path),
+            "text_model_path": str(args.text_model_path),
+            "text_tokenizer_dir": str(args.text_tokenizer_dir)
+            if args.text_tokenizer_dir is not None
+            else None,
+            "max_len": int(args.max_len),
+            "batch_size": int(args.batch_size),
+            "val_size": float(args.val_size),
+            "alpha_step": float(args.alpha_step),
+            "seed": int(args.seed),
+            "device": str(args.device),
+        },
+        "val_metrics": val_metrics,
+        "test_metrics": test_metrics,
+    }
+    weights_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return weights_path
+
+
 def main():
     parser = argparse.ArgumentParser(description="Late Fusion (soft voting) для аудио+текст моделей.")
     parser.add_argument("--train-lmdb", type=Path, default=DEFAULT_TRAIN_LMDB)
     parser.add_argument("--test-lmdb", type=Path, default=DEFAULT_TEST_LMDB)
     parser.add_argument("--audio-model-path", type=Path, default=DEFAULT_AUDIO_MODEL_PATH)
     parser.add_argument("--text-model-path", type=Path, default=DEFAULT_TEXT_MODEL_PATH)
+    parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS_DIR)
     parser.add_argument(
         "--text-tokenizer-dir",
         type=Path,
@@ -472,6 +523,16 @@ def main():
     test_best = evaluate_fusion(y_test, p_audio_test, p_text_test, best_alpha)
     print_eval("LATE FUSION @ VAL", y_val, val_best["y_pred"], val_best["metrics"])
     print_eval("LATE FUSION @ TEST", y_test, test_best["y_pred"], test_best["metrics"])
+
+    weights_path = _save_fusion_weights(
+        results_dir=args.results_dir,
+        args=args,
+        best_alpha=best_alpha,
+        best_val_f1=best_val_f1,
+        val_metrics=val_best["metrics"],
+        test_metrics=test_best["metrics"],
+    )
+    print(f"\nВесовые коэффициенты сохранены: {weights_path}")
 
 
 if __name__ == "__main__":

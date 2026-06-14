@@ -19,6 +19,7 @@ import random
 import re
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import numpy as np
 import torch
@@ -38,6 +39,14 @@ from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 

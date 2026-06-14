@@ -7,6 +7,7 @@ from collections import deque
 from contextlib import nullcontext
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import numpy as np
 import torch
@@ -24,6 +25,14 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 from transformers import Wav2Vec2Model, get_cosine_schedule_with_warmup
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 

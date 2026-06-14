@@ -1,0 +1,38 @@
+{
+  "saved_at": "2026-05-25T21:06:02",
+  "best_alpha": 0.5,
+  "best_val_f1_macro": 0.8870586505151231,
+  "audio_weight": 0.5,
+  "text_weight": 0.5,
+  "args": {
+    "train_lmdb": "/run/media/syori/500G/dusha/dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/combine_balanced_train.lmdb",
+    "test_lmdb": "/run/media/syori/500G/dusha/dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/combine_balanced_test.lmdb",
+    "audio_model_name": "xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned",
+    "feature_extractor_name": "facebook/hubert-large-ls960-ft",
+    "text_model_path": "/run/media/syori/500G/dusha/dusha/my_experiments/text_models/transformers/models_params/RuBERT_dusha_resd_train_model.pt",
+    "text_tokenizer_dir": null,
+    "max_len": 128,
+    "batch_size": 8,
+    "val_size": 0.2,
+    "alpha_step": 0.05,
+    "max_duration": 10.0,
+    "seed": 42,
+    "device": "auto"
+  },
+  "val_metrics": {
+    "alpha": 0.5,
+    "accuracy": 0.8795819335572975,
+    "balanced_accuracy": 0.886910442216919,
+    "precision_macro": 0.8966338973727195,
+    "recall_macro": 0.886910442216919,
+    "f1_macro": 0.8870586505151231
+  },
+  "test_metrics": {
+    "alpha": 0.5,
+    "accuracy": 0.8338548185231539,
+    "balanced_accuracy": 0.8457949932649619,
+    "precision_macro": 0.8559909002333695,
+    "recall_macro": 0.8457949932649619,
+    "f1_macro": 0.8431710567135017
+  }
+}

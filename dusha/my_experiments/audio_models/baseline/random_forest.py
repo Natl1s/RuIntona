@@ -7,22 +7,35 @@ import json
 import joblib
 import argparse
 from datetime import datetime
+import sys
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
+
+
+def _exec_config(config_path: Path) -> dict:
+    config_ns = {"__file__": str(config_path)}
+    exec(config_path.read_text(encoding="utf-8"), config_ns)
+    return config_ns
+
 
 # Импорт base_path из data.config
 _data_config_path = Path(__file__).parent.parent.parent.parent / "experiments" / "configs" / "data.config"
-_data_config_ns = {}
-exec(open(_data_config_path).read(), _data_config_ns)
+_data_config_ns = _exec_config(_data_config_path)
 DATASET_PATH = _data_config_ns['base_path']
 
 _train_data_config_path = Path(__file__).parent.parent.parent / "train_data.config"
-_train_data_config_ns = {}
-exec(open(_train_data_config_path).read(), _train_data_config_ns)
+_train_data_config_ns = _exec_config(_train_data_config_path)
 TRAIN_DATA_PATH = Path(_train_data_config_ns["train_data_path"])
 
 _test_data_config_path = Path(__file__).parent.parent.parent / "test_data.config"
-_test_data_config_ns = {}
-exec(open(_test_data_config_path).read(), _test_data_config_ns)
+_test_data_config_ns = _exec_config(_test_data_config_path)
 TEST_DATA_PATH = Path(_test_data_config_ns["test_data_path"])
 
 # Путь для сохранения моделей

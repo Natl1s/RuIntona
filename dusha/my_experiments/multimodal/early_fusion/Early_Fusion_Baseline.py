@@ -27,8 +27,12 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(PROJECT_ROOT) not in sys.path:
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
@@ -74,6 +78,8 @@ DEFAULT_TEXT_MODEL_PATH = (
 )
 
 DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
+MODELS_DIR = Path(__file__).resolve().parent / "models_params"
+MODEL_NAME = Path(__file__).stem
 TARGET_NAMES = ["angry", "sad", "neutral", "positive"]
 
 
@@ -450,6 +456,43 @@ def _save_results(
     return out_path
 
 
+def save_model(
+    model,
+    dataset_name: str,
+    model_name: str = MODEL_NAME,
+    training_params=None,
+    test_metrics=None,
+) -> tuple[Path, Path, Path]:
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    full_model_name = f"{model_name}_{dataset_name}"
+    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
+    backup_path = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pt"
+    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
+
+    torch.save(model.state_dict(), model_path)
+    torch.save(model.state_dict(), backup_path)
+
+    report_lines = [
+        f"model_name: {model_name}",
+        f"dataset_name: {dataset_name}",
+        f"saved_at: {timestamp}",
+        "",
+        "training_params:",
+        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
+        "",
+        "test_metrics:",
+        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
+        "",
+    ]
+    report_path.write_text("\n".join(report_lines), encoding="utf-8")
+
+    print(f"\nМодель сохранена: {model_path.resolve()}")
+    print(f"Бэкап: {backup_path.resolve()}")
+    print(f"Отчёт: {report_path.resolve()}")
+    return model_path, backup_path, report_path
+
+
 def load_audio_encoder(
     audio_model_path: Path,
     device: torch.device,
@@ -768,6 +811,36 @@ def main():
     train_export["classification_report"] = _classification_report_dict(y_train_true, y_train_pred)
     val_export["classification_report"] = _classification_report_dict(y_val_true, y_val_pred)
     test_export["classification_report"] = _classification_report_dict(y_test_true, y_test_pred)
+
+    save_model(
+        model=model,
+        dataset_name=args.train_lmdb.stem,
+        training_params={
+            "train_lmdb": str(args.train_lmdb),
+            "test_lmdb": str(args.test_lmdb),
+            "audio_model_path": str(args.audio_model_path),
+            "text_model_path": str(args.text_model_path),
+            "batch_size": int(args.batch_size),
+            "val_size": float(args.val_size),
+            "epochs": int(args.epochs),
+            "lr": float(args.lr),
+            "weight_decay": float(args.weight_decay),
+            "projection_dim": int(args.projection_dim),
+            "dropout": float(args.dropout),
+            "max_len": int(max_len),
+            "seed": int(args.seed),
+            "device": str(device),
+            "audio_lstm_hidden_size": int(args.audio_lstm_hidden_size),
+            "audio_lstm_layers": int(args.audio_lstm_layers),
+            "audio_lstm_dropout": float(args.audio_lstm_dropout),
+            "audio_bidirectional": bool(not args.audio_unidirectional),
+            "grad_clip_norm": float(args.grad_clip_norm),
+            "best_epoch": int(best_epoch),
+            "best_val_f1_macro": float(best_val_f1),
+            "text_backbone": str(text_model_params.get("backbone_name")),
+        },
+        test_metrics=test_export.get("metrics", {}),
+    )
 
     results_path = _save_results(
         results_dir=args.results_dir,

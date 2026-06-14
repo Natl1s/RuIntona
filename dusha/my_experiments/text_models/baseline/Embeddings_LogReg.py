@@ -37,7 +37,23 @@ import joblib
 import argparse
 from datetime import datetime
 import re
+import sys
+
+PROJECT_ROOT = None
+for parent in Path(__file__).resolve().parents:
+    if parent.name == "my_experiments":
+        PROJECT_ROOT = parent.parent
+        break
+if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
 from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
+
+
+def _exec_config(config_path: Path) -> dict:
+    config_ns = {"__file__": str(config_path)}
+    exec(config_path.read_text(encoding="utf-8"), config_ns)
+    return config_ns
+
 
 # Проверка наличия gensim
 try:
@@ -52,18 +68,15 @@ except ImportError:
 
 # Импорт base_path из data.config
 _data_config_path = Path(__file__).parent.parent.parent.parent / "experiments" / "configs" / "data.config"
-_data_config_ns = {}
-exec(open(_data_config_path).read(), _data_config_ns)
+_data_config_ns = _exec_config(_data_config_path)
 DATASET_PATH = _data_config_ns['base_path']
 
 _train_data_config_path = Path(__file__).parent.parent.parent / "train_data.config"
-_train_data_config_ns = {}
-exec(open(_train_data_config_path).read(), _train_data_config_ns)
+_train_data_config_ns = _exec_config(_train_data_config_path)
 TRAIN_DATA_PATH = Path(_train_data_config_ns["train_data_path"])
 
 _test_data_config_path = Path(__file__).parent.parent.parent / "test_data.config"
-_test_data_config_ns = {}
-exec(open(_test_data_config_path).read(), _test_data_config_ns)
+_test_data_config_ns = _exec_config(_test_data_config_path)
 TEST_DATA_PATH = Path(_test_data_config_ns["test_data_path"])
 
 # Путь для сохранения моделей
@@ -130,6 +143,28 @@ def save_model(
     print(f"✓ Бэкап:  {model_path_timestamped.absolute()}")
     print(f"✓ Отчёт:  {report_path.absolute()}")
     print(f"{'='*60}")
+
+
+def save_metrics_report(report_lines, dataset_name, model_name=MODEL_NAME):
+    """Сохраняет все метрики, которые выводятся в консоль."""
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    full_model_name = f"{model_name}_{dataset_name}"
+    metrics_path = MODELS_DIR / f"{full_model_name}_metrics_{timestamp}.txt"
+
+    full_report_lines = [
+        f"model_name: {model_name}",
+        f"dataset_name: {dataset_name}",
+        f"saved_at: {timestamp}",
+        "",
+        *report_lines,
+        "",
+    ]
+    metrics_path.write_text("\n".join(full_report_lines), encoding="utf-8")
+    print(f"✓ Метрики сохранены: {metrics_path.absolute()}")
+
+    return metrics_path
 
 
 def load_model(dataset_name, model_name=MODEL_NAME):
@@ -367,7 +402,16 @@ def texts_to_vectors(texts, fasttext_model, verbose=True):
     return vectors_matrix
 
 
-def evaluate_model(model, scaler, X_train, y_train, X_test, y_test):
+def evaluate_model(
+    model,
+    scaler,
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    dataset_name,
+    model_name=MODEL_NAME,
+):
     """
     Оценка модели на обучающей и тестовой выборках.
     
@@ -432,6 +476,18 @@ def evaluate_model(model, scaler, X_train, y_train, X_test, y_test):
     test_cm = confusion_matrix(y_test, test_pred)
     print(test_cm)
 
+    train_accuracy = float(accuracy_score(y_train, train_pred))
+    test_accuracy = float(accuracy_score(y_test, test_pred))
+
+    train_report_dict = classification_report(
+        y_train,
+        train_pred,
+        labels=['angry', 'sad', 'neutral', 'positive'],
+        target_names=['angry', 'sad', 'neutral', 'positive'],
+        zero_division=0,
+        output_dict=True,
+    )
+
     test_report_dict = classification_report(
         y_test,
         test_pred,
@@ -441,8 +497,26 @@ def evaluate_model(model, scaler, X_train, y_train, X_test, y_test):
         output_dict=True,
     )
 
+    metrics_lines = [
+        "train_classification_report:",
+        train_report_text.strip(),
+        "",
+        "test_classification_report:",
+        test_report_text.strip(),
+        "",
+        "test_confusion_matrix:",
+        json.dumps(test_cm.tolist(), ensure_ascii=False, indent=2),
+        "",
+        f"train_accuracy: {train_accuracy:.6f}",
+        f"test_accuracy: {test_accuracy:.6f}",
+    ]
+    save_metrics_report(metrics_lines, dataset_name, model_name=model_name)
+
     return {
-        "test_accuracy": float(accuracy_score(y_test, test_pred)),
+        "train_accuracy": train_accuracy,
+        "train_classification_report_text": train_report_text,
+        "train_classification_report": train_report_dict,
+        "test_accuracy": test_accuracy,
         "test_classification_report_text": test_report_text,
         "test_classification_report": test_report_dict,
         "test_confusion_matrix": test_cm.tolist(),
@@ -556,7 +630,15 @@ def train_embeddings_logreg(embeddings_path=None, save=True):
     print("✓ Обучение завершено!")
 
     # Оценка модели
-    metrics = evaluate_model(model, scaler, X_train, y_train, X_test, y_test)
+    metrics = evaluate_model(
+        model,
+        scaler,
+        X_train,
+        y_train,
+        X_test,
+        y_test,
+        dataset_name,
+    )
     
     # Сохранение модели
     if save:
@@ -641,7 +723,15 @@ def load_and_evaluate(embeddings_path=None):
     X_test = texts_to_vectors(X_test_texts, fasttext_model, verbose=False)
     
     # Оценка модели
-    evaluate_model(model, scaler, X_train, y_train, X_test, y_test)
+    evaluate_model(
+        model,
+        scaler,
+        X_train,
+        y_train,
+        X_test,
+        y_test,
+        dataset_name,
+    )
 
     return model, scaler
 
