@@ -1,10 +1,6 @@
 import argparse
-import json
 import pickle
-import random
-from datetime import datetime
 from pathlib import Path
-import sys
 
 import numpy as np
 import torch
@@ -21,81 +17,23 @@ from sklearn.metrics import (
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
-PROJECT_ROOT = None
-for parent in Path(__file__).resolve().parents:
-    if parent.name == "my_experiments":
-        PROJECT_ROOT = parent.parent
+import sys
+_PROJECT_ROOT = None
+for _parent in Path(__file__).resolve().parents:
+    if _parent.name == "my_experiments":
+        _PROJECT_ROOT = _parent.parent
         break
-if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(_PROJECT_ROOT))
 
+from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, load_experiment_config
+from my_experiments.model_io import save_pytorch_model
+from my_experiments.metrics import weighted_accuracy
+from my_experiments.torch_utils import set_seed, resolve_device
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
-
-
-def _exec_config(config_path: Path) -> dict:
-    config_ns = {"__file__": str(config_path)}
-    exec(config_path.read_text(encoding="utf-8"), config_ns)
-    return config_ns
-
-
-# Импорт base_path из experiments/configs/data.config (как в baseline-скриптах)
-_data_config_path = (
-    Path(__file__).parent.parent.parent.parent / "experiments" / "configs" / "data.config"
-)
-_data_config_ns = _exec_config(_data_config_path)
-DATASET_PATH = _data_config_ns["base_path"]
-
-_train_data_config_path = Path(__file__).parent.parent.parent / "train_data.config"
-_train_data_config_ns = _exec_config(_train_data_config_path)
-TRAIN_DATA_PATH = Path(_train_data_config_ns["train_data_path"])
-
-_test_data_config_path = Path(__file__).parent.parent.parent / "test_data.config"
-_test_data_config_ns = _exec_config(_test_data_config_path)
-TEST_DATA_PATH = Path(_test_data_config_ns["test_data_path"])
-
-EMO2LABEL = {"angry": 0, "sad": 1, "neutral": 2, "positive": 3}
-LABEL2EMO = {v: k for k, v in EMO2LABEL.items()}
-TARGET_NAMES = [LABEL2EMO[i] for i in range(len(LABEL2EMO))]
 
 MODELS_DIR = Path(__file__).parent / "models_params"
 MODEL_NAME = Path(__file__).stem
-
-
-def set_seed(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-    torch.use_deterministic_algorithms(True)
-
-
-def weighted_accuracy(y_true, y_pred, n_classes: int = 4) -> float:
-    y_true = np.asarray(y_true)
-    y_pred = np.asarray(y_pred)
-    recalls = []
-    for cls_idx in range(n_classes):
-        cls_mask = y_true == cls_idx
-        if cls_mask.sum() == 0:
-            continue
-        recalls.append((y_pred[cls_mask] == cls_idx).mean())
-    return float(np.mean(recalls)) if recalls else 0.0
-
-
-def resolve_aggregated_dir(dataset_path: Path) -> Path:
-    candidates = [
-        dataset_path / "processed_dataset_090" / "aggregated_dataset",
-        dataset_path / "aggregated_dataset",
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-    return candidates[0]
-
-
-def get_dataset_name(manifest_path: Path) -> str:
-    return manifest_path.stem
 
 
 class LmdbFeaturesDataset(Dataset):
@@ -122,7 +60,6 @@ class LmdbFeaturesDataset(Dataset):
         label = parse_label_to_index(label_raw)
         x = torch.from_numpy(arr)
 
-        # Ожидаем [1, 64, T], но поддерживаем частые вариации.
         if x.ndim == 2:
             x = x.unsqueeze(0)
         elif x.ndim == 3 and x.shape[0] != 1 and x.shape[-1] == 1:
@@ -146,63 +83,30 @@ def pad_collate_fn(batch):
 
 
 class EmotionCNN(nn.Module):
-    def __init__(self, n_classes: int = 4):
+    def __init__(self, n_classes: int = 4, conv_channels: list[int] | None = None, classifier_dropout: float = 0.2):
         super().__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=3, padding=1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(16, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.AdaptiveAvgPool2d((1, 1)),
-        )
+        if conv_channels is None:
+            conv_channels = [16, 32, 64]
+        layers = []
+        in_ch = 1
+        for out_ch in conv_channels:
+            layers += [
+                nn.Conv2d(in_ch, out_ch, kernel_size=3, padding=1),
+                nn.BatchNorm2d(out_ch),
+                nn.ReLU(inplace=True),
+                nn.MaxPool2d(kernel_size=2, stride=2),
+            ]
+            in_ch = out_ch
+        layers += [nn.AdaptiveAvgPool2d((1, 1))]
+        self.features = nn.Sequential(*layers)
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Dropout(p=0.2),
-            nn.Linear(64, n_classes),
+            nn.Dropout(p=classifier_dropout),
+            nn.Linear(conv_channels[-1], n_classes),
         )
 
     def forward(self, x):
         return self.classifier(self.features(x))
-
-
-def save_model(
-    model,
-    dataset_name: str,
-    model_name: str = MODEL_NAME,
-    training_params=None,
-    test_metrics=None,
-) -> None:
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    backup_path = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pt"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
-    torch.save(model.state_dict(), model_path)
-    torch.save(model.state_dict(), backup_path)
-    report_lines = [
-        f"model_name: {model_name}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-    print(f"\nМодель сохранена: {model_path.resolve()}")
-    print(f"Бэкап: {backup_path.resolve()}")
-    print(f"Отчёт: {report_path.resolve()}")
 
 
 def evaluate_split(model, loader, criterion, device):
@@ -219,10 +123,8 @@ def evaluate_split(model, loader, criterion, device):
             y = y.to(device)
             logits = model(x)
             loss = criterion(logits, y)
-
             probs = torch.softmax(logits, dim=1)
             preds = torch.argmax(probs, dim=1)
-
             running_loss += loss.item() * x.size(0)
             all_logits.append(logits.cpu().numpy())
             all_probs.append(probs.cpu().numpy())
@@ -241,11 +143,9 @@ def evaluate_split(model, loader, criterion, device):
         "balanced_accuracy": float(balanced_accuracy_score(y_true, y_pred)),
         "f1_macro": float(f1_score(y_true, y_pred, average="macro")),
         "f1_weighted": float(f1_score(y_true, y_pred, average="weighted")),
-        "precision_macro": float(
-            precision_score(y_true, y_pred, average="macro", zero_division=0)
-        ),
+        "precision_macro": float(precision_score(y_true, y_pred, average="macro", zero_division=0)),
         "recall_macro": float(recall_score(y_true, y_pred, average="macro", zero_division=0)),
-        "WA": float(weighted_accuracy(y_true, y_pred, n_classes=len(TARGET_NAMES))),
+        "WA": float(weighted_accuracy(y_true, y_pred)),
     }
     try:
         metrics["roc_auc_ovr_macro"] = float(
@@ -263,36 +163,10 @@ def print_metrics(title, metrics, y_true, y_pred):
     print(f"{'=' * 70}")
     for k, v in metrics.items():
         print(f"{k:>20}: {v:.6f}")
-
     print("\nClassification report:")
-    print(
-        classification_report(
-            y_true,
-            y_pred,
-            labels=list(range(len(TARGET_NAMES))),
-            target_names=TARGET_NAMES,
-            digits=4,
-            zero_division=0,
-        )
-    )
+    print(classification_report(y_true, y_pred, labels=list(range(len(TARGET_NAMES))), target_names=TARGET_NAMES, digits=4, zero_division=0))
     print("Confusion matrix:")
     print(confusion_matrix(y_true, y_pred))
-
-
-def resolve_device(device_arg: str) -> torch.device:
-    device_arg = device_arg.lower()
-    if device_arg == "auto":
-        device_arg = "cuda" if torch.cuda.is_available() else "cpu"
-
-    if device_arg == "cuda":
-        if not torch.cuda.is_available():
-            raise RuntimeError(
-                "Запрошено обучение на GPU (--device cuda), но CUDA недоступна."
-            )
-        return torch.device("cuda:0")
-    if device_arg == "cpu":
-        return torch.device("cpu")
-    raise ValueError(f"Неподдерживаемое устройство: {device_arg}")
 
 
 def train_cnn(
@@ -305,6 +179,8 @@ def train_cnn(
     seed: int,
     save: bool,
     device_arg: str,
+    conv_channels: list[int] | None = None,
+    classifier_dropout: float = 0.2,
 ):
     set_seed(seed)
     device = resolve_device(device_arg)
@@ -319,24 +195,10 @@ def train_cnn(
     train_ds = LmdbFeaturesDataset(train_lmdb)
     test_ds = LmdbFeaturesDataset(test_lmdb)
 
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=0,
-        pin_memory=use_cuda,
-        collate_fn=pad_collate_fn,
-    )
-    test_loader = DataLoader(
-        test_ds,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=0,
-        pin_memory=use_cuda,
-        collate_fn=pad_collate_fn,
-    )
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=use_cuda, collate_fn=pad_collate_fn)
+    test_loader = DataLoader(test_ds, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=use_cuda, collate_fn=pad_collate_fn)
 
-    model = EmotionCNN(n_classes=len(TARGET_NAMES)).to(device)
+    model = EmotionCNN(n_classes=len(TARGET_NAMES), conv_channels=conv_channels, classifier_dropout=classifier_dropout).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
@@ -358,29 +220,21 @@ def train_cnn(
         for batch_idx, (x, y) in enumerate(train_loader, start=1):
             x = x.to(device, non_blocking=use_cuda)
             y = y.to(device, non_blocking=use_cuda)
-
             optimizer.zero_grad()
             logits = model(x)
             loss = criterion(logits, y)
             loss.backward()
             optimizer.step()
-
             running_loss += loss.item() * x.size(0)
             seen_samples += x.size(0)
             preds = torch.argmax(logits, dim=1)
             running_preds.append(preds.detach().cpu().numpy())
             running_targets.append(y.detach().cpu().numpy())
-
             bar_width = 30
             filled = int(bar_width * batch_idx / num_batches)
             bar = "#" * filled + "-" * (bar_width - filled)
             mean_batch_loss = running_loss / max(seen_samples, 1)
-            print(
-                f"\rEpoch {epoch:03d}/{epochs} [{bar}] {batch_idx}/{num_batches} "
-                f"loss={mean_batch_loss:.4f}",
-                end="",
-                flush=True,
-            )
+            print(f"\rEpoch {epoch:03d}/{epochs} [{bar}] {batch_idx}/{num_batches} loss={mean_batch_loss:.4f}", end="", flush=True)
         print()
 
         train_pred = np.concatenate(running_preds, axis=0)
@@ -395,95 +249,80 @@ def train_cnn(
             best_f1 = test_f1
             best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
 
-        print(
-            f"Epoch {epoch:03d}/{epochs} | "
-            f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} train_f1={train_f1:.4f} | "
-            f"test_loss={test_metrics['loss']:.4f} test_acc={test_metrics['accuracy']:.4f} "
-            f"test_f1={test_f1:.4f}"
-        )
+        print(f"Epoch {epoch:03d}/{epochs} | "
+              f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} train_f1={train_f1:.4f} | "
+              f"test_loss={test_metrics['loss']:.4f} test_acc={test_metrics['accuracy']:.4f} test_f1={test_f1:.4f}")
 
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    final_test_metrics, y_true, y_pred, _, _ = evaluate_split(
-        model, test_loader, criterion, device
-    )
+    final_test_metrics, y_true, y_pred, _, _ = evaluate_split(model, test_loader, criterion, device)
     print_metrics("ФИНАЛЬНАЯ ОЦЕНКА НА TEST", final_test_metrics, y_true, y_pred)
 
     dataset_name = get_dataset_name(train_lmdb)
     if save:
-        final_report_text = classification_report(
-            y_true,
-            y_pred,
-            labels=list(range(len(TARGET_NAMES))),
-            target_names=TARGET_NAMES,
-            digits=4,
-            zero_division=0,
-        )
+        final_report_text = classification_report(y_true, y_pred, labels=list(range(len(TARGET_NAMES))), target_names=TARGET_NAMES, digits=4, zero_division=0)
         final_confusion_matrix = confusion_matrix(y_true, y_pred)
         training_params = {
-            "epochs": epochs,
-            "batch_size": batch_size,
-            "lr": lr,
-            "weight_decay": weight_decay,
-            "seed": seed,
-            "device": str(device),
-            "train_lmdb": str(train_lmdb),
-            "test_lmdb": str(test_lmdb),
+            "epochs": epochs, "batch_size": batch_size, "lr": lr,
+            "weight_decay": weight_decay, "seed": seed, "device": str(device),
+            "train_lmdb": str(train_lmdb), "test_lmdb": str(test_lmdb),
         }
         test_metrics = {
             **final_test_metrics,
             "test_classification_report_text": final_report_text,
             "test_confusion_matrix": final_confusion_matrix.tolist(),
         }
-        save_model(
-            model,
-            dataset_name=dataset_name,
-            training_params=training_params,
-            test_metrics=test_metrics,
+        save_pytorch_model(
+            model.state_dict(), dataset_name=dataset_name,
+            models_dir=MODELS_DIR, model_name=MODEL_NAME,
+            training_params=training_params, test_metrics=test_metrics,
         )
 
     return model
 
 
+CNN_DEFAULTS = {
+    "conv_channels": [16, 32, 64],
+    "kernel_size": 3,
+    "classifier_dropout": 0.2,
+    "epochs": 5,
+    "batch_size": 16,
+    "lr": 1e-3,
+    "weight_decay": 1e-5,
+    "seed": 42,
+}
+
+
 def main():
-    parser = argparse.ArgumentParser(
-        description="CNN baseline для классификации эмоций из LMDB."
-    )
-    parser.add_argument(
-        "--aggregated-dir",
-        type=Path,
-        default=TRAIN_DATA_PATH.parent,
-        help="Путь к папке с LMDB файлами.",
-    )
-    parser.add_argument(
-        "--train-lmdb-name",
-        type=str,
-        default=TRAIN_DATA_PATH.name,
-        help="Имя train LMDB файла.",
-    )
-    parser.add_argument(
-        "--test-lmdb-name",
-        type=str,
-        default=TEST_DATA_PATH.name,
-        help="Имя test LMDB файла.",
-    )
-    parser.add_argument("--epochs", type=int, default=5, help="Количество эпох.")
-    parser.add_argument("--batch-size", type=int, default=16, help="Размер батча.")
-    parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
-    parser.add_argument(
-        "--weight-decay", type=float, default=1e-5, help="Weight decay для Adam."
-    )
-    parser.add_argument("--seed", type=int, default=42, help="Seed.")
-    parser.add_argument(
-        "--device",
-        type=str,
-        choices=["cuda", "cpu", "auto"],
-        default="cuda",
-        help="Устройство обучения. По умолчанию --device cuda (обязателен GPU).",
-    )
-    parser.add_argument("--no-save", action="store_true", help="Не сохранять модель.")
+    parser = argparse.ArgumentParser(description="CNN baseline для классификации эмоций из LMDB.")
+    parser.add_argument("--aggregated-dir", type=Path, default=TRAIN_DATA_PATH.parent)
+    parser.add_argument("--train-lmdb-name", type=str, default=TRAIN_DATA_PATH.name)
+    parser.add_argument("--test-lmdb-name", type=str, default=TEST_DATA_PATH.name)
+    parser.add_argument("--conv-channels", type=int, nargs="+", default=None, help="Каналы свёрточных слоёв (по умолчанию: 16 32 64)")
+    parser.add_argument("--classifier-dropout", type=float, default=None, help="Dropout в классификаторе (по умолчанию: 0.2)")
+    parser.add_argument("--epochs", type=int, default=None)
+    parser.add_argument("--batch-size", type=int, default=None)
+    parser.add_argument("--lr", type=float, default=None)
+    parser.add_argument("--weight-decay", type=float, default=None)
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--device", type=str, choices=["cuda", "cpu", "auto"], default=None)
+    parser.add_argument("--no-save", action="store_true")
+    parser.add_argument("--config", type=str, default=None, help="Путь к JSON-конфигу (относительно configs/ или абсолютный)")
     args = parser.parse_args()
+
+    cfg = {**CNN_DEFAULTS, **(load_experiment_config(args.config) or {})}
+
+    # CLI-флаги перезаписывают конфиг
+    for key in ["epochs", "batch_size", "lr", "weight_decay", "seed", "device", "classifier_dropout"]:
+        cli_val = getattr(args, key.replace("-", "_"), None) if "-" not in key else getattr(args, key.replace("-", "_"), None)
+        # getattr с kebab→snake
+        attr = key.replace("-", "_")
+        cli_val = getattr(args, attr, None)
+        if cli_val is not None:
+            cfg[attr] = cli_val
+    if args.conv_channels is not None:
+        cfg["conv_channels"] = args.conv_channels
 
     train_lmdb = args.aggregated_dir / args.train_lmdb_name
     test_lmdb = args.aggregated_dir / args.test_lmdb_name
@@ -494,15 +333,11 @@ def main():
         raise FileNotFoundError(f"Test LMDB не найден: {test_lmdb}")
 
     train_cnn(
-        train_lmdb=train_lmdb,
-        test_lmdb=test_lmdb,
-        epochs=args.epochs,
-        batch_size=args.batch_size,
-        lr=args.lr,
-        weight_decay=args.weight_decay,
-        seed=args.seed,
-        save=not args.no_save,
-        device_arg=args.device,
+        train_lmdb=train_lmdb, test_lmdb=test_lmdb,
+        epochs=cfg["epochs"], batch_size=cfg["batch_size"], lr=cfg["lr"],
+        weight_decay=cfg["weight_decay"], seed=cfg["seed"],
+        save=not args.no_save, device_arg=cfg.get("device", "cuda"),
+        conv_channels=cfg["conv_channels"], classifier_dropout=cfg["classifier_dropout"],
     )
 
 

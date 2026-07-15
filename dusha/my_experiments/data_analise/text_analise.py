@@ -59,7 +59,7 @@ if PYMORPHY_AVAILABLE and pymorphy3:
         print("  Лемматизация будет отключена.")
 
 # Импорт base_path из data.config
-_data_config_path = Path(__file__).parent.parent.parent / "experiments" / "configs" / "data.config"
+_data_config_path = Path(__file__).parent / "data.config"
 _data_config_ns = {}
 exec(open(_data_config_path).read(), _data_config_ns)
 DATASET_PATH = _data_config_ns['base_path']
@@ -652,34 +652,19 @@ def plot_top_words_per_emotion(top_words, output_dir):
         words = [item[0] for item in top_words[emotion]]
         scores = [item[1] for item in top_words[emotion]]
 
-        fig, ax = plt.subplots(figsize=(6, 6))
+        fig, ax = plt.subplots(figsize=(10, 6))
         y_pos = np.arange(len(words))
         ax.barh(y_pos, scores, color=EMOTION_COLORS[emotion], alpha=0.8)
         ax.set_yticks(y_pos)
-        ax.set_yticklabels(words, fontsize=18, fontweight='bold')
+        ax.set_yticklabels(words, fontsize=11)
         ax.invert_yaxis()
-        ax.set_xlabel('TF-IDF Score', fontsize=16, fontweight='bold')
+        ax.set_xlabel('TF-IDF Score', fontsize=12)
         ax.set_title(
             f'{emotion.capitalize()} - важные слова/фразы',
-            fontsize=18,
+            fontsize=14,
             fontweight='bold',
             color=EMOTION_COLORS[emotion],
         )
-        max_score = max(scores) if scores else 0.0
-        offset = max_score * 0.02
-        for idx, score in enumerate(scores):
-            ax.text(
-                score + offset,
-                idx,
-                f"{score:.3f}",
-                va='center',
-                ha='left',
-                fontsize=16,
-                fontweight='bold',
-            )
-        ax.tick_params(axis='x', labelsize=15)
-        for tick in ax.get_xticklabels():
-            tick.set_fontweight('bold')
         ax.grid(axis='x', alpha=0.3)
         fig.tight_layout()
 

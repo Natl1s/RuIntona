@@ -24,17 +24,21 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-PROJECT_ROOT = None
-for parent in Path(__file__).resolve().parents:
-    if parent.name == "my_experiments":
-        PROJECT_ROOT = parent.parent
+_PROJECT_ROOT = None
+for _parent in Path(__file__).resolve().parents:
+    if _parent.name == "my_experiments":
+        _PROJECT_ROOT = _parent.parent
         break
-if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(_PROJECT_ROOT))
 
 from my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
 from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 from my_experiments.text_models.transformers.RuBERT import EmotionClassifier
+from my_experiments.config_utils import (
+    MY_EXPERIMENTS_DIR, TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES,
+    load_experiment_config, apply_config_to_args, add_config_arg,
+)
 
 
 def print(*args, **kwargs):
@@ -45,29 +49,18 @@ def print(*args, **kwargs):
         builtins.print(prefix, **kwargs)
 
 
-def _exec_config(config_path: Path) -> dict:
-    config_ns = {"__file__": str(config_path)}
-    exec(config_path.read_text(encoding="utf-8"), config_ns)
-    return config_ns
-
-
-PROJECT_MY_EXP_DIR = Path(__file__).resolve().parents[2]
-
-_train_data_config_ns = _exec_config(PROJECT_MY_EXP_DIR / "train_data.config")
-DEFAULT_TRAIN_LMDB = Path(_train_data_config_ns["train_data_path"])
-
-_test_data_config_ns = _exec_config(PROJECT_MY_EXP_DIR / "test_data.config")
-DEFAULT_TEST_LMDB = Path(_test_data_config_ns["test_data_path"])
+DEFAULT_TRAIN_LMDB = TRAIN_DATA_PATH
+DEFAULT_TEST_LMDB = TEST_DATA_PATH
 
 DEFAULT_AUDIO_MODEL_PATH = (
-    PROJECT_MY_EXP_DIR
+    MY_EXPERIMENTS_DIR
     / "audio_models"
     / "CNN"
     / "models_params"
     / "CNN_BiLSTM_combine_balanced_train_model.pt"
 )
 DEFAULT_TEXT_MODEL_PATH = (
-    PROJECT_MY_EXP_DIR
+    MY_EXPERIMENTS_DIR
     / "text_models"
     / "transformers"
     / "models_params"
@@ -75,7 +68,6 @@ DEFAULT_TEXT_MODEL_PATH = (
 )
 
 DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
-TARGET_NAMES = ["angry", "sad", "neutral", "positive"]
 
 
 def set_seed(seed: int) -> None:
@@ -433,7 +425,12 @@ def main():
     parser.add_argument("--alpha-step", type=float, default=0.05)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=str, choices=["cuda", "cpu", "auto"], default="auto")
+    add_config_arg(parser)
     args = parser.parse_args()
+
+    experiment_config = load_experiment_config(args.config)
+    if experiment_config:
+        args = apply_config_to_args(args, experiment_config)
 
     if not args.train_lmdb.exists():
         raise FileNotFoundError(f"Train LMDB не найден: {args.train_lmdb}")

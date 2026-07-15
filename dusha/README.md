@@ -1,4 +1,4 @@
-# Dusha dataset
+    # Dusha dataset
 
 Dusha is a bi-modal corpus suitable for speech emotion recognition (SER) tasks. The dataset consists of about 300 000 audio recordings with Russian speech, their transcripts and emotiomal labels. The corpus contains approximately 350 hours of data. Four basic emotions that usually appear in a dialog with a virtual assistant were selected: Happiness (Positive), Sadness, Anger and Neutral emotion.
 

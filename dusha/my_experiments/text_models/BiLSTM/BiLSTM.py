@@ -1,24 +1,14 @@
 """
 FastText Embeddings + BiLSTM для классификации эмоций по тексту.
-
-Скрипт повторяет базовый пайплайн Embeddings_LogReg:
-- загрузка train/test из LMDB через конфиги train_data.config/test_data.config
-- предобработка текста
-- работа с FastText embeddings
-- прогрессбары обучения
-- вывод метрик и confusion matrix
-- сохранение модели и отчёта
 """
 
 import argparse
 import builtins
 import json
-import random
 import re
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
-import sys
 
 import numpy as np
 import torch
@@ -39,14 +29,18 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
-PROJECT_ROOT = None
-for parent in Path(__file__).resolve().parents:
-    if parent.name == "my_experiments":
-        PROJECT_ROOT = parent.parent
+import sys
+_PROJECT_ROOT = None
+for _parent in Path(__file__).resolve().parents:
+    if _parent.name == "my_experiments":
+        _PROJECT_ROOT = _parent.parent
         break
-if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(_PROJECT_ROOT))
 
+from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg
+from my_experiments.torch_utils import set_seed, resolve_device
+from my_experiments.text_utils import preprocess_text, load_fasttext_model
 from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 
 
@@ -57,41 +51,10 @@ def print(*args, **kwargs):
     else:
         builtins.print(prefix, **kwargs)
 
-
-try:
-    from gensim.models.fasttext import load_facebook_model
-
-    GENSIM_AVAILABLE = True
-except ImportError:
-    GENSIM_AVAILABLE = False
-    print("⚠ ВНИМАНИЕ: gensim не установлен!")
-    print("Установите: pip install gensim")
-    print("Или: poetry add gensim")
-
-
-def _exec_config(config_path: Path) -> dict:
-    config_ns = {"__file__": str(config_path)}
-    exec(config_path.read_text(encoding="utf-8"), config_ns)
-    return config_ns
-
-
-_data_config_path = Path(__file__).parent.parent.parent.parent / "experiments" / "configs" / "data.config"
-_data_config_ns = _exec_config(_data_config_path)
-DATASET_PATH = _data_config_ns["base_path"]
-
-_train_data_config_path = Path(__file__).parent.parent.parent / "train_data.config"
-_train_data_config_ns = _exec_config(_train_data_config_path)
-TRAIN_DATA_PATH = Path(_train_data_config_ns["train_data_path"])
-
-_test_data_config_path = Path(__file__).parent.parent.parent / "test_data.config"
-_test_data_config_ns = _exec_config(_test_data_config_path)
-TEST_DATA_PATH = Path(_test_data_config_ns["test_data_path"])
-
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 DEFAULT_EMBEDDINGS_PATH = Path.home() / "fasttext_models" / "cc.ru.300.bin"
 
-TARGET_NAMES = ["angry", "sad", "neutral", "positive"]
 EMO2IDX = {name: i for i, name in enumerate(TARGET_NAMES)}
 
 PAD_TOKEN = "<pad>"
@@ -100,63 +63,8 @@ PAD_IDX = 0
 UNK_IDX = 1
 
 
-def set_seed(seed: int) -> None:
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-
-
-def resolve_device(device_arg: str) -> torch.device:
-    device_arg = device_arg.lower()
-    if device_arg == "auto":
-        device_arg = "cuda" if torch.cuda.is_available() else "cpu"
-    if device_arg == "cuda":
-        if not torch.cuda.is_available():
-            raise RuntimeError("Запрошено обучение на GPU, но CUDA недоступна.")
-        return torch.device("cuda:0")
-    if device_arg == "cpu":
-        return torch.device("cpu")
-    raise ValueError(f"Неподдерживаемое устройство: {device_arg}")
-
-
-def get_dataset_name(train_manifest_path: Path) -> str:
-    return Path(train_manifest_path).stem
-
-
-def preprocess_text(text: str) -> str:
-    if not isinstance(text, str):
-        return ""
-    text = text.lower()
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
-
-
 def load_texts_from_manifest(manifest_path: Path):
     return _load_texts_from_lmdb(Path(manifest_path), preprocess_fn=preprocess_text)
-
-
-def load_fasttext_model(embeddings_path: Path):
-    if not GENSIM_AVAILABLE:
-        raise ImportError(
-            "Библиотека gensim не установлена!\n"
-            "Установите: pip install gensim\n"
-            "Или: poetry add gensim"
-        )
-
-    embeddings_path = Path(embeddings_path)
-    if not embeddings_path.exists():
-        raise FileNotFoundError(f"Файл с embeddings не найден: {embeddings_path}")
-
-    print(f"Загрузка FastText embeddings из {embeddings_path}...")
-    print("⏳ Это может занять несколько минут...")
-    model = load_facebook_model(str(embeddings_path))
-    print("✓ Embeddings загружены!")
-    print(f"  - Размерность вектора: {model.wv.vector_size}")
-    print(f"  - Количество слов в словаре: {len(model.wv)}")
-    return model
 
 
 def build_vocab(texts: list[str], max_vocab_size: int, min_freq: int) -> dict[str, int]:
@@ -795,7 +703,12 @@ if __name__ == "__main__":
         default="auto",
         help="Устройство обучения.",
     )
+    add_config_arg(parser)
     args = parser.parse_args()
+
+    experiment_config = load_experiment_config(args.config)
+    if experiment_config:
+        args = apply_config_to_args(args, experiment_config)
 
     if not GENSIM_AVAILABLE:
         raise ImportError(

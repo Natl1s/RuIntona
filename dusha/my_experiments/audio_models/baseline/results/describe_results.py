@@ -21,13 +21,13 @@ from sklearn.svm import SVC
 
 
 # Импорт base_path из data.config
-_data_config_path = Path(__file__).parent.parent.parent.parent.parent / "experiments" / "configs" / "data.config"
+_data_config_path = Path(__file__).parent.parent.parent / "data.config"
 _data_config_ns = {}
 exec(open(_data_config_path).read(), _data_config_ns)
 DATASET_PATH = _data_config_ns["base_path"]
 
 EMOTIONS = ["angry", "sad", "neutral", "positive"]
-MODEL_PREFIXES = ["logictic_regressoin", "svm", "random_forest"]
+MODEL_PREFIXES = ["logistic_regression", "svm", "random_forest"]
 
 
 @dataclass

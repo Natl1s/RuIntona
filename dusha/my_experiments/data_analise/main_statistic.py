@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from experiments.core.utils import load_jsonl_as_df
 
 # Импорт base_path из data.config
-_data_config_path = Path(__file__).parent.parent.parent / "experiments" / "configs" / "data.config"
+_data_config_path = Path(__file__).parent / "data.config"
 _data_config_ns = {}
 exec(open(_data_config_path).read(), _data_config_ns)
 DATASET_PATH = _data_config_ns['base_path']
@@ -14,7 +14,9 @@ DATASET_PATH = _data_config_ns['base_path']
 def analyze_emotion_distribution(manifest_path):
     """Анализ распределения эмоций в манифесте"""
     # Загрузка JSONL манифеста
+    print('before')
     df = load_jsonl_as_df(manifest_path)
+    print('after')
 
     # Подсчет записей по эмоциям
     emotion_counts = df['emotion'].value_counts()

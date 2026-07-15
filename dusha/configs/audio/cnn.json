@@ -1,0 +1,13 @@
+{
+    "_description": "CNN baseline для классификации эмоций из аудио (-mfcc фичи)",
+    "_script": "dusha/my_experiments/audio_models/CNN/CNN.py",
+
+    "conv_channels": [16, 32, 64],
+    "kernel_size": 3,
+    "classifier_dropout": 0.2,
+    "epochs": 5,
+    "batch_size": 16,
+    "lr": 0.001,
+    "weight_decay": 1e-5,
+    "seed": 42
+}

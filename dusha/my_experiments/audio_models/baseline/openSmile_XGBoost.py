@@ -2,7 +2,6 @@ import argparse
 import json
 from datetime import datetime
 from pathlib import Path
-import sys
 
 import joblib
 import numpy as np
@@ -21,14 +20,16 @@ from sklearn.metrics import (
     top_k_accuracy_score,
 )
 
-PROJECT_ROOT = None
-for parent in Path(__file__).resolve().parents:
-    if parent.name == "my_experiments":
-        PROJECT_ROOT = parent.parent
+import sys
+_PROJECT_ROOT = None
+for _parent in Path(__file__).resolve().parents:
+    if _parent.name == "my_experiments":
+        _PROJECT_ROOT = _parent.parent
         break
-if PROJECT_ROOT and str(PROJECT_ROOT) not in sys.path:
-    sys.path.append(str(PROJECT_ROOT))
+if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(_PROJECT_ROOT))
 
+from my_experiments.config_utils import DATASET_PATH, TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, load_experiment_config, apply_config_to_args, add_config_arg
 from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
 
 try:
@@ -38,29 +39,10 @@ except ImportError:
         return iterable
 
 
-def _exec_config(config_path: Path) -> dict:
-    config_ns = {"__file__": str(config_path)}
-    exec(config_path.read_text(encoding="utf-8"), config_ns)
-    return config_ns
-
-# Импорт base_path из data.config
-_data_config_path = Path(__file__).parent.parent.parent.parent / "experiments" / "configs" / "data.config"
-_data_config_ns = _exec_config(_data_config_path)
-DATASET_PATH = _data_config_ns["base_path"]
-
-_train_data_config_path = Path(__file__).parent.parent.parent / "train_data.config"
-_train_data_config_ns = _exec_config(_train_data_config_path)
-TRAIN_DATA_PATH = Path(_train_data_config_ns["train_data_path"])
-
-_test_data_config_path = Path(__file__).parent.parent.parent / "test_data.config"
-_test_data_config_ns = _exec_config(_test_data_config_path)
-TEST_DATA_PATH = Path(_test_data_config_ns["test_data_path"])
-
-# Путь для сохранения моделей
 MODELS_DIR = Path(__file__).parent / "models_params"
-MODEL_NAME = Path(__file__).stem  # openSmile_XGBoost
+MODEL_NAME = Path(__file__).stem
 
-EMOTIONS = ["angry", "sad", "neutral", "positive"]
+EMOTIONS = TARGET_NAMES
 EMOTION_TO_IDX = {emotion: idx for idx, emotion in enumerate(EMOTIONS)}
 
 WAV_SUBDIRS = [
@@ -140,10 +122,7 @@ def save_model(
     model_path_timestamped = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pkl"
     report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
 
-    # Сохранение основных файлов
     joblib.dump(model, model_path)
-
-    # Сохранение с временной меткой (для истории)
     joblib.dump({"model": model}, model_path_timestamped)
 
     report_lines = [
@@ -181,7 +160,6 @@ def load_model(dataset_name, model_name=MODEL_NAME):
         )
 
     model = joblib.load(model_path)
-
     print(f"✓ Модель загружена из {model_path}")
     return model
 
@@ -191,11 +169,6 @@ def model_exists(dataset_name, model_name=MODEL_NAME):
     full_model_name = f"{model_name}_{dataset_name}"
     model_path = MODELS_DIR / f"{full_model_name}_model.pkl"
     return model_path.exists()
-
-
-def get_dataset_name(train_manifest_path):
-    """Извлекает имя датасета из пути к манифесту"""
-    return Path(train_manifest_path).stem
 
 
 def _init_opensmile_extractor():
@@ -369,7 +342,6 @@ def _build_classifier(
 
     def _try_xgboost():
         from xgboost import XGBClassifier
-
         return XGBClassifier(
             objective="multi:softprob",
             num_class=len(EMOTIONS),
@@ -388,7 +360,6 @@ def _build_classifier(
 
     def _try_lightgbm():
         from lightgbm import LGBMClassifier
-
         return LGBMClassifier(
             objective="multiclass",
             num_class=len(EMOTIONS),
@@ -452,48 +423,25 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, feature_names, focus
     y_train_labels = _to_emotion_labels(y_train)
     y_test_labels = _to_emotion_labels(y_test)
 
-    # Оценка на обучающей выборке
     print(f"\n{'=' * 60}")
     print("ОЦЕНКА НА ОБУЧАЮЩЕЙ ВЫБОРКЕ")
     print(f"{'=' * 60}")
     train_pred = _to_emotion_labels(model.predict(X_train))
-    print(
-        classification_report(
-            y_train_labels,
-            train_pred,
-            labels=EMOTIONS,
-            target_names=EMOTIONS,
-            zero_division=0,
-        )
-    )
+    print(classification_report(y_train_labels, train_pred, labels=EMOTIONS, target_names=EMOTIONS, zero_division=0))
 
-    # Оценка на тестовой выборке
     print(f"\n{'=' * 60}")
     print("ОЦЕНКА НА ТЕСТОВОЙ ВЫБОРКЕ")
     print(f"{'=' * 60}")
     test_pred = _to_emotion_labels(model.predict(X_test))
     test_proba = _align_proba_to_emotions(model, model.predict_proba(X_test))
-    test_report_text = classification_report(
-        y_test_labels,
-        test_pred,
-        labels=EMOTIONS,
-        target_names=EMOTIONS,
-        zero_division=0,
-    )
+    test_report_text = classification_report(y_test_labels, test_pred, labels=EMOTIONS, target_names=EMOTIONS, zero_division=0)
     print(test_report_text)
 
     print("\nМатрица ошибок:")
     test_cm = confusion_matrix(y_test_labels, test_pred, labels=EMOTIONS)
     print(test_cm)
 
-    test_report_dict = classification_report(
-        y_test_labels,
-        test_pred,
-        labels=EMOTIONS,
-        target_names=EMOTIONS,
-        zero_division=0,
-        output_dict=True,
-    )
+    test_report_dict = classification_report(y_test_labels, test_pred, labels=EMOTIONS, target_names=EMOTIONS, zero_division=0, output_dict=True)
 
     y_test_idx = _to_emotion_indices(y_test_labels)
     y_pred_idx = _to_emotion_indices(test_pred)
@@ -501,27 +449,15 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, feature_names, focus
     metrics = {
         "test_accuracy": float(accuracy_score(y_test_labels, test_pred)),
         "test_balanced_accuracy": float(balanced_accuracy_score(y_test_labels, test_pred)),
-        "test_f1_macro": float(
-            f1_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)
-        ),
-        "test_f1_weighted": float(
-            f1_score(y_test_labels, test_pred, labels=EMOTIONS, average="weighted", zero_division=0)
-        ),
-        "test_precision_macro": float(
-            precision_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)
-        ),
-        "test_recall_macro": float(
-            recall_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)
-        ),
+        "test_f1_macro": float(f1_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)),
+        "test_f1_weighted": float(f1_score(y_test_labels, test_pred, labels=EMOTIONS, average="weighted", zero_division=0)),
+        "test_precision_macro": float(precision_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)),
+        "test_recall_macro": float(recall_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)),
         "test_UAR": float(recall_score(y_test_labels, test_pred, labels=EMOTIONS, average="macro", zero_division=0)),
         "test_WA": float(weighted_accuracy(y_test_labels, test_pred, labels=EMOTIONS)),
         "test_mcc": float(matthews_corrcoef(y_test_labels, test_pred)),
-        "test_cohen_kappa_qwk": float(
-            cohen_kappa_score(y_test_labels, test_pred, labels=EMOTIONS, weights="quadratic")
-        ),
-        "test_top2_accuracy": float(
-            top_k_accuracy_score(y_test_idx, test_proba, k=2, labels=list(range(len(EMOTIONS))))
-        ),
+        "test_cohen_kappa_qwk": float(cohen_kappa_score(y_test_labels, test_pred, labels=EMOTIONS, weights="quadratic")),
+        "test_top2_accuracy": float(top_k_accuracy_score(y_test_idx, test_proba, k=2, labels=list(range(len(EMOTIONS))))),
         "test_log_loss": float(log_loss(y_test_idx, test_proba, labels=list(range(len(EMOTIONS))))),
         "test_classification_report_text": test_report_text,
         "test_classification_report": test_report_dict,
@@ -563,8 +499,6 @@ def train_opensmile_boosting(
 ):
     train_manifest = TRAIN_DATA_PATH
     test_manifest = TEST_DATA_PATH
-
-    # Извлечение имени датасета
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -577,11 +511,8 @@ def train_opensmile_boosting(
 
     print("Извлечение OpenSMILE eGeMAPS признаков для train...")
     X_train, y_train, feature_names, focus_stats_train, n_train_skipped = load_opensmile_features_from_manifest(
-        train_manifest,
-        dataset_root=DATASET_PATH,
-        cache_path=train_cache,
-        max_samples=max_train_samples,
-        progress_desc="OpenSMILE train",
+        train_manifest, dataset_root=DATASET_PATH, cache_path=train_cache,
+        max_samples=max_train_samples, progress_desc="OpenSMILE train",
     )
     print(f"Количество обучающих примеров: {len(y_train)}")
     print(f"Размер обучающей выборки: {X_train.shape}")
@@ -590,11 +521,8 @@ def train_opensmile_boosting(
 
     print("\nИзвлечение OpenSMILE eGeMAPS признаков для test...")
     X_test, y_test, _, _, n_test_skipped = load_opensmile_features_from_manifest(
-        test_manifest,
-        dataset_root=DATASET_PATH,
-        cache_path=test_cache,
-        max_samples=max_test_samples,
-        progress_desc="OpenSMILE test",
+        test_manifest, dataset_root=DATASET_PATH, cache_path=test_cache,
+        max_samples=max_test_samples, progress_desc="OpenSMILE test",
     )
     print(f"Количество тестовых примеров: {len(y_test)}")
     print(f"Размер тестовой выборки: {X_test.shape}")
@@ -604,25 +532,18 @@ def train_opensmile_boosting(
     print(f"\n{'=' * 60}")
     print("ОБУЧЕНИЕ БУСТИНГ-МОДЕЛИ (OpenSMILE eGeMAPS)")
     print(f"{'=' * 60}")
-    print(
-        f"Параметры: model_type={model_type}, n_estimators={n_estimators}, "
-        f"learning_rate={learning_rate}, max_depth={max_depth}, random_state={random_state}"
-    )
+    print(f"Параметры: model_type={model_type}, n_estimators={n_estimators}, "
+          f"learning_rate={learning_rate}, max_depth={max_depth}, random_state={random_state}")
 
     model, resolved_model_name = _build_classifier(
-        model_type=model_type,
-        random_state=random_state,
-        n_estimators=n_estimators,
-        learning_rate=learning_rate,
-        max_depth=max_depth,
+        model_type=model_type, random_state=random_state,
+        n_estimators=n_estimators, learning_rate=learning_rate, max_depth=max_depth,
     )
     model.fit(X_train, _to_emotion_indices(y_train))
     print(f"✓ Обучение завершено! ({resolved_model_name})")
 
-    # Оценка модели
     metrics = evaluate_model(model, X_train, y_train, X_test, y_test, feature_names, focus_stats_train)
 
-    # Сохранение модели
     if save:
         training_params = {
             "resolved_model_name": resolved_model_name,
@@ -638,12 +559,7 @@ def train_opensmile_boosting(
             "max_test_samples": max_test_samples,
             "use_cache": use_cache,
         }
-        save_model(
-            model,
-            dataset_name,
-            training_params=training_params,
-            test_metrics=metrics,
-        )
+        save_model(model, dataset_name, training_params=training_params, test_metrics=metrics)
 
     return model, dataset_name
 
@@ -665,8 +581,6 @@ def load_and_evaluate(
 
     train_manifest = TRAIN_DATA_PATH
     test_manifest = TEST_DATA_PATH
-
-    # Извлечение имени датасета
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -681,25 +595,18 @@ def load_and_evaluate(
 
     print("\nИзвлечение train-признаков...")
     X_train, y_train, feature_names, focus_stats_train, _ = load_opensmile_features_from_manifest(
-        train_manifest,
-        dataset_root=DATASET_PATH,
-        cache_path=train_cache,
-        max_samples=max_train_samples,
-        progress_desc="OpenSMILE train",
+        train_manifest, dataset_root=DATASET_PATH, cache_path=train_cache,
+        max_samples=max_train_samples, progress_desc="OpenSMILE train",
     )
     print(f"Количество обучающих примеров: {len(y_train)}")
 
     print("\nИзвлечение test-признаков...")
     X_test, y_test, _, _, _ = load_opensmile_features_from_manifest(
-        test_manifest,
-        dataset_root=DATASET_PATH,
-        cache_path=test_cache,
-        max_samples=max_test_samples,
-        progress_desc="OpenSMILE test",
+        test_manifest, dataset_root=DATASET_PATH, cache_path=test_cache,
+        max_samples=max_test_samples, progress_desc="OpenSMILE test",
     )
     print(f"Количество тестовых примеров: {len(y_test)}")
 
-    # Оценка модели
     evaluate_model(model, X_train, y_train, X_test, y_test, feature_names, focus_stats_train)
     return model
 
@@ -708,70 +615,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Обучение или загрузка OpenSMILE(eGeMAPS)+XGBoost/LightGBM для классификации эмоций"
     )
-    parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["train", "load", "auto"],
-        default="auto",
-        help="Режим работы: train - обучить новую модель, load - загрузить существующую, auto - загрузить если есть, иначе обучить",
-    )
-    parser.add_argument(
-        "--no-save",
-        action="store_true",
-        help="Не сохранять модель после обучения",
-    )
-    parser.add_argument(
-        "--model-type",
-        type=str,
-        choices=["auto", "xgboost", "lightgbm"],
-        default="auto",
-        help="Тип модели бустинга: auto/xgboost/lightgbm",
-    )
-    parser.add_argument(
-        "--n-estimators",
-        type=int,
-        default=500,
-        help="Количество деревьев",
-    )
-    parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=0.05,
-        help="Learning rate",
-    )
-    parser.add_argument(
-        "--max-depth",
-        type=int,
-        default=6,
-        help="Максимальная глубина деревьев",
-    )
-    parser.add_argument(
-        "--random-state",
-        type=int,
-        default=42,
-        help="Seed",
-    )
-    parser.add_argument(
-        "--max-train-samples",
-        type=int,
-        default=None,
-        help="Ограничение количества train-сэмплов (для быстрых прогонов)",
-    )
-    parser.add_argument(
-        "--max-test-samples",
-        type=int,
-        default=None,
-        help="Ограничение количества test-сэмплов (для быстрых прогонов)",
-    )
-    parser.add_argument(
-        "--no-cache",
-        action="store_true",
-        help="Не использовать кэш OpenSMILE признаков",
-    )
-
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto"], default="auto")
+    parser.add_argument("--no-save", action="store_true")
+    parser.add_argument("--model-type", type=str, choices=["auto", "xgboost", "lightgbm"], default="auto")
+    parser.add_argument("--n-estimators", type=int, default=500)
+    parser.add_argument("--learning-rate", type=float, default=0.05)
+    parser.add_argument("--max-depth", type=int, default=6)
+    parser.add_argument("--random-state", type=int, default=42)
+    parser.add_argument("--max-train-samples", type=int, default=None)
+    parser.add_argument("--max-test-samples", type=int, default=None)
+    parser.add_argument("--no-cache", action="store_true")
+    add_config_arg(parser)
     args = parser.parse_args()
 
-    # Получение имени датасета для проверки существования модели
+    experiment_config = load_experiment_config(args.config)
+    if experiment_config:
+        args = apply_config_to_args(args, experiment_config)
+
     dataset_name = get_dataset_name(TRAIN_DATA_PATH)
 
     common_kwargs = {
@@ -785,17 +645,16 @@ if __name__ == "__main__":
         "use_cache": not args.no_cache,
     }
 
-    # Определение режима работы
     if args.mode == "train":
         print("🎯 Режим: Обучение новой модели\n")
-        model, _ = train_opensmile_boosting(save=not args.no_save, **common_kwargs)
+        train_opensmile_boosting(save=not args.no_save, **common_kwargs)
     elif args.mode == "load":
         print("📂 Режим: Загрузка существующей модели\n")
-        model = load_and_evaluate(**common_kwargs)
-    else:  # auto
+        load_and_evaluate(**common_kwargs)
+    else:
         if model_exists(dataset_name):
-            print("📂 Режим: AUTO - найдена существующая модель, загружаем...\n")
-            model = load_and_evaluate(**common_kwargs)
+            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            load_and_evaluate(**common_kwargs)
         else:
-            print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
-            model, _ = train_opensmile_boosting(save=not args.no_save, **common_kwargs)
+            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            train_opensmile_boosting(save=not args.no_save, **common_kwargs)

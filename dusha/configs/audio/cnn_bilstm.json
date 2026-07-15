@@ -1,0 +1,17 @@
+{
+    "_description": "CNN + BiLSTM для классификации эмоций из аудио",
+    "_script": "dusha/my_experiments/audio_models/CNN/CNN_BiLSTM.py",
+
+    "conv_channels": [16, 32, 64],
+    "kernel_size": 3,
+    "classifier_dropout": 0.3,
+    "lstm_hidden_size": 128,
+    "lstm_layers": 2,
+    "lstm_dropout": 0.2,
+    "bidirectional": true,
+    "epochs": 30,
+    "batch_size": 32,
+    "lr": 0.001,
+    "weight_decay": 1e-5,
+    "seed": 42
+}

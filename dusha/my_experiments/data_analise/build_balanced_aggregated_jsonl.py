@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Sequence
 
 # Импорт base_path из data.config
-_data_config_path = Path(__file__).parent.parent.parent / "experiments" / "configs" / "data.config"
+_data_config_path = Path(__file__).parent / "data.config"
 _data_config_ns = {}
 exec(open(_data_config_path).read(), _data_config_ns)
 DATASET_PATH = _data_config_ns['base_path']

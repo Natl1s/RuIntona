@@ -1,0 +1,10 @@
+{
+    "_description": "Late Fusion (PyTorch) — ансамбль CNN-BiLSTM + RuBERT через alpha-перебор",
+    "_script": "dusha/my_experiments/multimodal/late_fusion/Late_Fusion.py",
+
+    "max_len": 128,
+    "batch_size": 32,
+    "val_size": 0.2,
+    "alpha_step": 0.05,
+    "seed": 42
+}

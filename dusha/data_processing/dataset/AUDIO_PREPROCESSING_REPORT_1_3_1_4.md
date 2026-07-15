@@ -14,7 +14,7 @@
    На этом этапе создаются `features/*.npy` и манифесты `processed_dataset_090/*.jsonl`.
 
 2. **Онлайн-контур для waveform-моделей (wav2vec2 и мультимодаль)**  
-   (`data_processing/dataset/lmdb_convert.py`, `my_experiments/.../wav2vec_ self_attention.py`, `my_experiments/multimodal/co-attention/Co_Attention_Baseline.py`)  
+   (`data_processing/dataset/lmdb_convert.py`, `my_experiments/.../wav2vec_self_attention.py`, `my_experiments/multimodal/co-attention/Co_Attention_Baseline.py`)  
    Здесь сигнал берется как сырой `waveform`, нормализуется, режется/паддится по времени, преобразуется в батчи.
 
 Таким образом, проект одновременно поддерживает:
@@ -84,7 +84,7 @@
 
 ### Нормализация амплитуды
 
-В waveform-контуре (`my_experiments/audio_models/transformers/wav2vec_ self_attention.py` и `my_experiments/multimodal/co-attention/Co_Attention_Baseline.py`) используется единая логика:
+В waveform-контуре (`my_experiments/audio_models/transformers/wav2vec_self_attention.py` и `my_experiments/multimodal/co-attention/Co_Attention_Baseline.py`) используется единая логика:
 
 - приведение к `float32`,
 - `np.nan_to_num(..., nan=0, posinf=1, neginf=-1)`,
