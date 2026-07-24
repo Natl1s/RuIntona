@@ -10,6 +10,7 @@ import pickle
 import re
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
@@ -40,15 +41,16 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, EMO2LABEL, get_dataset_name, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.torch_utils import set_seed, resolve_device
+from my_experiments.utils.config_utils import TARGET_NAMES, EMO2LABEL, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists, save_metrics_report
+from my_experiments.utils.torch_utils import set_seed, resolve_device
 
 PAD_TOKEN = "<pad>"
 UNK_TOKEN = "<unk>"
 PAD_IDX = 0
 UNK_IDX = 1
 
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 
 LABEL2EMO = {v: k for k, v in EMO2LABEL.items()}
@@ -368,67 +370,39 @@ def save_model(
     test_metrics: dict,
     model_name: str = MODEL_NAME,
 ):
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{model_name}_{dataset_name}"
-
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    backup_path = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pt"
-    vocab_path = MODELS_DIR / f"{full_model_name}_vocab.json"
-    meta_path = MODELS_DIR / f"{full_model_name}_meta.json"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
-
-    torch.save(model.state_dict(), model_path)
-    torch.save(model.state_dict(), backup_path)
-    vocab_path.write_text(json.dumps(vocab, ensure_ascii=False, indent=2), encoding="utf-8")
-    meta_path.write_text(
-        json.dumps({"model_config": model_config, "training_params": training_params}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+    extra_artifacts = {
+        "vocab.json": vocab,
+        "meta.json": {"model_config": model_config, "training_params": training_params},
+    }
+    save_pytorch_model(
+        model.state_dict(),
+        dataset_name,
+        models_dir=MODELS_DIR,
+        model_name=model_name,
+        training_params=training_params,
+        test_metrics=test_metrics,
+        extra_artifacts=extra_artifacts,
+        model_class="TextBiLSTMClassifier",
+        model_params=model_config,
     )
-
-    report_lines = [
-        f"model_name: {model_name}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-
-    print(f"\n{'=' * 60}")
-    print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
-    print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ Бэкап:  {backup_path.absolute()}")
-    print(f"✓ Vocab:  {vocab_path.absolute()}")
-    print(f"✓ Meta:   {meta_path.absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
-    print(f"{'=' * 60}")
 
 
 def load_model(dataset_name: str, model_name: str = MODEL_NAME):
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    vocab_path = MODELS_DIR / f"{full_model_name}_vocab.json"
-    meta_path = MODELS_DIR / f"{full_model_name}_meta.json"
+    checkpoint = load_pytorch_model(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
 
-    if not model_path.exists() or not vocab_path.exists() or not meta_path.exists():
-        raise FileNotFoundError(
-            "Модель не найдена! Проверьте наличие файлов:\n"
-            f"  {model_path}\n"
-            f"  {vocab_path}\n"
-            f"  {meta_path}"
-        )
+    # Обратная совместимость: поддержка старого формата (отдельные vocab.json / meta.json)
+    if "extra_artifacts" in checkpoint:
+        vocab = checkpoint["extra_artifacts"].get("vocab.json", {})
+        meta = checkpoint["extra_artifacts"].get("meta.json", {})
+    else:
+        # Старый формат: ищем vocab.json и meta.json рядом
+        full_name = f"{model_name}_{dataset_name}"
+        vocab_path = MODELS_DIR / f"{full_name}_vocab.json"
+        meta_path = MODELS_DIR / f"{full_name}_meta.json"
+        vocab = json.loads(vocab_path.read_text(encoding="utf-8")) if vocab_path.exists() else {}
+        meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
 
-    vocab = json.loads(vocab_path.read_text(encoding="utf-8"))
-    meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    model_config = meta["model_config"]
+    model_config = meta.get("model_config", checkpoint.get("model_params", {}))
 
     model = TextBiLSTMClassifier(
         vocab_size=model_config["vocab_size"],
@@ -440,21 +414,14 @@ def load_model(dataset_name: str, model_name: str = MODEL_NAME):
         bidirectional=model_config["bidirectional"],
         n_classes=model_config["n_classes"],
     )
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    model.load_state_dict(checkpoint["model_state_dict"])
 
-    print(f"✓ Модель загружена из {model_path}")
-    print(f"✓ Vocab загружен из {vocab_path}")
-    print(f"✓ Meta загружен из {meta_path}")
-
+    print(f"✓ Модель загружена")
     return model, vocab, model_config
 
 
 def model_exists(dataset_name: str, model_name: str = MODEL_NAME) -> bool:
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    vocab_path = MODELS_DIR / f"{full_model_name}_vocab.json"
-    meta_path = MODELS_DIR / f"{full_model_name}_meta.json"
-    return model_path.exists() and vocab_path.exists() and meta_path.exists()
+    return pytorch_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
 
 
 def _make_loader(dataset: Dataset, batch_size: int, shuffle: bool, num_workers: int) -> DataLoader:
@@ -468,12 +435,12 @@ def _make_loader(dataset: Dataset, batch_size: int, shuffle: bool, num_workers: 
     )
 
 
-def train_bilstm_text(params: TrainParams, save: bool, device_arg: str):
+def train_bilstm_text(params: TrainParams, save: bool, device_arg: str, train_path=None, test_path=None):
     set_seed(params.seed)
     device = resolve_device(device_arg)
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
 
     print(f"📊 Датасет: {dataset_name}")
@@ -633,13 +600,13 @@ def train_bilstm_text(params: TrainParams, save: bool, device_arg: str):
     return model, vocab, dataset_name
 
 
-def load_and_evaluate(device_arg: str, batch_size: int, num_workers: int, max_len: int):
+def load_and_evaluate(device_arg: str, batch_size: int, num_workers: int, max_len: int, train_path=None, test_path=None):
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА СУЩЕСТВУЮЩЕЙ МОДЕЛИ")
     print(f"{'=' * 60}")
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
 
     model, vocab, _ = load_model(dataset_name)
@@ -672,9 +639,9 @@ def build_args() -> argparse.Namespace:
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["train", "load", "auto"],
+        choices=["train", "load", "auto", "smoke"],
         default="auto",
-        help="Режим работы: train/load/auto",
+        help="Режим работы: train/load/auto/smoke",
     )
     parser.add_argument("--epochs", type=int, default=12)
     parser.add_argument("--batch-size", type=int, default=64)
@@ -700,6 +667,7 @@ def build_args() -> argparse.Namespace:
         help="Устройство обучения",
     )
     parser.add_argument("--no-save", action="store_true", help="Не сохранять модель")
+    add_data_path_args(parser)
     add_config_arg(parser)
     return parser.parse_args()
 
@@ -709,7 +677,9 @@ def main():
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
+
+    train_path, test_path = resolve_data_paths(args)
+    dataset_name = get_dataset_name(train_path)
 
     params = TrainParams(
         embed_dim=args.embed_dim,
@@ -730,9 +700,21 @@ def main():
         seed=args.seed,
     )
 
-    if args.mode == "train":
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_bilstm_text(
+            params=TrainParams(
+                embed_dim=64, hidden_size=32, lstm_layers=1,
+                lstm_dropout=0.0, classifier_dropout=0.1, bidirectional=True,
+                max_vocab_size=500, min_freq=1, max_len=32,
+                epochs=2, batch_size=8, lr=1e-3, weight_decay=1e-5,
+                grad_clip=1.0, num_workers=0, seed=42,
+            ),
+            save=False, device_arg="cpu", train_path=train_path, test_path=test_path,
+        )
+    elif args.mode == "train":
         print("🎯 Режим: Обучение новой модели\n")
-        train_bilstm_text(params=params, save=not args.no_save, device_arg=args.device)
+        train_bilstm_text(params=params, save=not args.no_save, device_arg=args.device, train_path=train_path, test_path=test_path)
     elif args.mode == "load":
         print("📂 Режим: Загрузка существующей модели\n")
         load_and_evaluate(
@@ -740,6 +722,8 @@ def main():
             batch_size=args.batch_size,
             num_workers=args.num_workers,
             max_len=args.max_len,
+            train_path=train_path,
+            test_path=test_path,
         )
     else:
         if model_exists(dataset_name):
@@ -749,10 +733,12 @@ def main():
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 max_len=args.max_len,
+                train_path=train_path,
+                test_path=test_path,
             )
         else:
             print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
-            train_bilstm_text(params=params, save=not args.no_save, device_arg=args.device)
+            train_bilstm_text(params=params, save=not args.no_save, device_arg=args.device, train_path=train_path, test_path=test_path)
 
 
 if __name__ == "__main__":

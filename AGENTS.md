@@ -44,7 +44,7 @@ pip install lmdb gensim transformers
 poetry run python dusha/data_processing/processing.py -dataset_path /path/to/dataset
 
 # Build balanced JSONL datasets for custom experiments
-poetry run python dusha/my_experiments/data_analise/build_balanced_aggregated_jsonl.py
+poetry run python dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/build_balanced_aggregated_jsonl.py
 ```
 
 ### Custom Experiments (dusha/my_experiments/)

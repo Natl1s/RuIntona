@@ -12,7 +12,7 @@ from typing import Callable
 
 import numpy as np
 
-from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
+from my_experiments.utils.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 
 
 # ---------------------------------------------------------------------------

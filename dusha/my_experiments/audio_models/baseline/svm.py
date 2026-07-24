@@ -14,9 +14,9 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists
-from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists
+from my_experiments.utils.lmdb_utils import load_feature_vectors_from_lmdb
 
 MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
@@ -109,10 +109,10 @@ def evaluate_model(model, scaler, X_train, y_train, X_test, y_test):
     }
 
 
-def train_svm(save=True, kernel="rbf", C=1.0, gamma="scale"):
+def train_svm(save=True, kernel="rbf", C=1.0, gamma="scale", train_path=None, test_path=None):
     """Обучение SVM классификатора."""
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -161,14 +161,14 @@ def train_svm(save=True, kernel="rbf", C=1.0, gamma="scale"):
     return model, scaler, dataset_name
 
 
-def load_and_evaluate():
+def load_and_evaluate(train_path=None, test_path=None):
     """Загрузить существующую модель и оценить её."""
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА СУЩЕСТВУЮЩЕЙ МОДЕЛИ")
     print(f"{'=' * 60}")
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -192,14 +192,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Обучение или загрузка SVM для классификации эмоций"
     )
-    parser.add_argument("--mode", type=str, choices=["train", "load", "auto"], default="auto")
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     parser.add_argument("--no-save", action="store_true")
     parser.add_argument("--kernel", type=str, choices=["linear", "rbf", "poly", "sigmoid"], default="rbf")
     parser.add_argument("--C", type=float, default=1.0)
     parser.add_argument("--gamma", type=str, default="scale")
+    add_data_path_args(parser)
     add_config_arg(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
@@ -209,19 +211,22 @@ if __name__ == "__main__":
     except ValueError:
         gamma_value = args.gamma
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
+    dataset_name = get_dataset_name(train_path)
     _exists = lambda dn: sklearn_model_exists(dn, models_dir=MODELS_DIR, model_name=MODEL_NAME)
 
-    if args.mode == "train":
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_svm(save=False, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)
+    elif args.mode == "train":
         print("🎯 Режим: Обучение новой модели\n")
-        train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value)
+        train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)
     elif args.mode == "load":
         print("📂 Режим: Загрузка существующей модели\n")
-        load_and_evaluate()
+        load_and_evaluate(train_path=train_path, test_path=test_path)
     else:
         if _exists(dataset_name):
             print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
-            load_and_evaluate()
+            load_and_evaluate(train_path=train_path, test_path=test_path)
         else:
             print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
-            train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value)
+            train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)

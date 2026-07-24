@@ -23,7 +23,7 @@ Force recalculate features:
 
 If your `features/*.npy` are on a slow/external disk and training does too many random reads, convert the dataset into one LMDB file:
 
-    python dataset/lmdb_convert.py \
+    python dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/lmdb_convert.py \
       --manifest DATASET_PATH/processed_dataset_090/train/train.jsonl \
       --data-root DATASET_PATH/processed_dataset_090 \
       --output DATASET_PATH/processed_dataset_090/train.lmdb

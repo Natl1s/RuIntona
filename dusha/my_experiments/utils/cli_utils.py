@@ -16,12 +16,13 @@ def add_mode_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["train", "load", "auto"],
+        choices=["train", "load", "auto", "smoke"],
         default="auto",
         help=(
             "Режим работы: train — обучить новую модель, "
             "load — загрузить существующую, "
-            "auto — загрузить если есть, иначе обучить"
+            "auto — загрузить если есть, иначе обучить, "
+            "smoke — быстрая проверка (1-2 эпохи, без сохранения)"
         ),
     )
     parser.add_argument(
@@ -38,9 +39,10 @@ def dispatch_mode(
     load_fn: Callable[..., Any],
     model_exists_fn: Callable[[str], bool],
     dataset_name: str,
+    smoke_fn: Callable[..., Any] | None = None,
 ) -> Any:
     """
-    Диспетчеризует режим работы (auto / train / load).
+    Диспетчеризует режим работы (auto / train / load / smoke).
 
     Args:
         args: распарсенные аргументы (должен содержать .mode и .no_save)
@@ -48,7 +50,15 @@ def dispatch_mode(
         load_fn: функция загрузки (без аргументов)
         model_exists_fn: проверка существования модели (принимает dataset_name)
         dataset_name: имя датасета
+        smoke_fn: функция smoke-теста (опционально)
     """
+    if args.mode == "smoke":
+        if smoke_fn is not None:
+            print("💨 Режим: Smoke-тест\n")
+            return smoke_fn()
+        print("⚠️  Режим smoke не реализован для этой модели, запускаем train (save=False)\n")
+        return train_fn(save=False)
+
     if args.mode == "train":
         print("🎯 Режим: Обучение новой модели\n")
         return train_fn(save=not args.no_save)

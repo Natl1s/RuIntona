@@ -11,20 +11,18 @@ import sys
 from pathlib import Path
 import numpy as np
 
-# Добавляем путь к модулю
-sys.path.append(str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-# Импортируем функции из основного скрипта
 try:
-    from Embeddings_LogReg import (
-        load_fasttext_model,
+    from my_experiments.utils.text_utils import preprocess_text, load_fasttext_model
+    from my_experiments.text_models.baseline.Embeddings_LogReg import (
         text_to_vector,
-        preprocess_text,
-        load_model,
-        get_dataset_name,
-        DATASET_PATH,
-        DEFAULT_EMBEDDINGS_PATH
+        DEFAULT_EMBEDDINGS_PATH,
+        MODELS_DIR,
+        MODEL_NAME,
     )
+    from my_experiments.utils.config_utils import DATASET_PATH, get_dataset_name
+    from my_experiments.utils.model_io import load_sklearn_model
     IMPORTS_OK = True
 except ImportError as e:
     print(f"Ошибка импорта: {e}")
@@ -95,12 +93,11 @@ def main():
     
     # Загрузка обученной модели
     print("\n2. Загрузка обученной модели...")
-    base_path = DATASET_PATH / 'processed_dataset_090'
-    train_manifest = base_path / 'aggregated_dataset' / 'combine_balanced_train_small.jsonl'
+    train_manifest = DATASET_PATH / 'processed_dataset_090' / 'aggregated_dataset' / 'combine_balanced_train.lmdb'
     dataset_name = get_dataset_name(train_manifest)
     
     try:
-        model, scaler = load_model(dataset_name)
+        model, scaler = load_sklearn_model(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME)
     except FileNotFoundError as e:
         print(f"\n{e}")
         print("\nСначала обучите модель:")

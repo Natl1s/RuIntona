@@ -30,11 +30,13 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
-from my_experiments.config_utils import (
-    MY_EXPERIMENTS_DIR, TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES,
-    load_experiment_config, apply_config_to_args, add_config_arg,
+from my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
+from my_experiments.utils.config_utils import (
+    MY_EXPERIMENTS_DIR, TARGET_NAMES, CHECKPOINTS_DIR,
+    find_pretrained_model, resolve_model_path,
+    load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths,
 )
+from my_experiments.utils.model_io import load_pytorch_model, load_sklearn_model
 
 
 def print(*args, **kwargs):
@@ -45,26 +47,15 @@ def print(*args, **kwargs):
         builtins.print(prefix, **kwargs)
 
 
-DEFAULT_TRAIN_LMDB = TRAIN_DATA_PATH
-DEFAULT_TEST_LMDB = TEST_DATA_PATH
-
 DEFAULT_AUDIO_SCALER_PATH = (
-    MY_EXPERIMENTS_DIR
-    / "audio_models"
-    / "baseline"
-    / "models_params"
-    / "svm_combine_balanced_train_scaler.pkl"
+    CHECKPOINTS_DIR / "audio" / "svm_combine_balanced_train_scaler.pkl"
 )
 DEFAULT_AUDIO_MODEL_PATH = DEFAULT_AUDIO_SCALER_PATH.with_name(
     DEFAULT_AUDIO_SCALER_PATH.name.replace("_scaler.pkl", "_model.pkl")
 )
 
 DEFAULT_TEXT_MODEL_PATH = (
-    MY_EXPERIMENTS_DIR
-    / "text_models"
-    / "baseline"
-    / "models_params"
-    / "TF-IDF_LogReg_combine_balanced_train_model.pkl"
+    CHECKPOINTS_DIR / "text" / "TF-IDF_LogReg_combine_balanced_train_model.pkl"
 )
 DEFAULT_TEXT_VECTORIZER_PATH = DEFAULT_TEXT_MODEL_PATH.with_name(
     DEFAULT_TEXT_MODEL_PATH.name.replace("_model.pkl", "_vectorizer.pkl")
@@ -399,8 +390,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Late Fusion (soft voting) для baseline-моделей audio SVM + text TF-IDF LogReg."
     )
-    parser.add_argument("--train-lmdb", type=Path, default=DEFAULT_TRAIN_LMDB)
-    parser.add_argument("--test-lmdb", type=Path, default=DEFAULT_TEST_LMDB)
+    add_data_path_args(parser)
     parser.add_argument("--audio-scaler-path", type=Path, default=DEFAULT_AUDIO_SCALER_PATH)
     parser.add_argument("--audio-model-path", type=Path, default=DEFAULT_AUDIO_MODEL_PATH)
     parser.add_argument("--text-model-path", type=Path, default=DEFAULT_TEXT_MODEL_PATH)
@@ -410,8 +400,13 @@ def main():
     parser.add_argument("--val-size", type=float, default=0.2)
     parser.add_argument("--alpha-step", type=float, default=0.05)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     add_config_arg(parser)
     args = parser.parse_args()
+
+    train_path, test_path = resolve_data_paths(args)
+    args.train_lmdb = train_path
+    args.test_lmdb = test_path
 
     experiment_config = load_experiment_config(args.config)
     if experiment_config:

@@ -34,13 +34,14 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
-from my_experiments.config_utils import DATASET_PATH, TRAIN_DATA_PATH, TEST_DATA_PATH, EMO2LABEL, LABEL2EMO, TARGET_NAMES, load_experiment_config, apply_config_to_args, add_config_arg
+from my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
+from my_experiments.utils.config_utils import DATASET_PATH, EMO2LABEL, LABEL2EMO, TARGET_NAMES, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists
 
 
 TARGET_SAMPLE_RATE = 16000
 
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = "wav2vec2_xlsr300m_self_attention"
 UNFREEZE_LAST_N = 4
 HEAD_DROPOUT = 0.1
@@ -336,34 +337,18 @@ def save_model(
     training_params=None,
     test_metrics=None,
 ) -> None:
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{MODEL_NAME}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
-
-    payload = {
-        "model_state_dict": model.state_dict(),
-        "model_name": MODEL_NAME,
-        "saved_at": timestamp,
-    }
-    torch.save(payload, model_path)
-
-    report_lines = [
-        f"model_name: {MODEL_NAME}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-    print(f"\nМодель сохранена: {model_path.resolve()}")
-    print(f"Отчёт: {report_path.resolve()}")
+    extra_artifacts = {}
+    save_pytorch_model(
+        model.state_dict(),
+        dataset_name,
+        models_dir=MODELS_DIR,
+        model_name=MODEL_NAME,
+        training_params=training_params,
+        test_metrics=test_metrics,
+        extra_artifacts=extra_artifacts,
+        model_class="Wav2VecSelfAttentionClassifier",
+        model_params={"pretrained_name": MODEL_NAME},
+    )
 
 
 def save_checkpoint(
@@ -922,24 +907,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Wav2Vec2-XLS-R-300M + self-attention pooling для классификации эмоций из LMDB."
     )
-    parser.add_argument(
-        "--aggregated-dir",
-        type=Path,
-        default=TRAIN_DATA_PATH.parent,
-        help="Путь к папке с LMDB файлами.",
-    )
-    parser.add_argument(
-        "--train-lmdb-name",
-        type=str,
-        default=TRAIN_DATA_PATH.name,
-        help="Имя train LMDB файла.",
-    )
-    parser.add_argument(
-        "--test-lmdb-name",
-        type=str,
-        default=TEST_DATA_PATH.name,
-        help="Имя test LMDB файла.",
-    )
+    add_data_path_args(parser)
     parser.add_argument(
         "--pretrained-name",
         type=str,
@@ -1036,6 +1004,7 @@ def main():
         help="Устройство обучения. По умолчанию --device cuda (обязателен GPU).",
     )
     parser.add_argument("--no-save", action="store_true", help="Не сохранять модель.")
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     add_config_arg(parser)
     args = parser.parse_args()
 
@@ -1043,8 +1012,9 @@ def main():
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
 
-    train_lmdb = args.aggregated_dir / args.train_lmdb_name
-    test_lmdb = args.aggregated_dir / args.test_lmdb_name
+    train_path, test_path = resolve_data_paths(args)
+    train_lmdb = train_path
+    test_lmdb = test_path
 
     validate_lmdb_path(train_lmdb, kind="Train")
     validate_lmdb_path(test_lmdb, kind="Test")
@@ -1067,7 +1037,32 @@ def main():
     if args.one_batch_steps <= 0:
         raise ValueError("--one-batch-steps должен быть > 0")
 
-    if args.one_batch_overfit_test:
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_wav2vec(
+            train_lmdb=train_lmdb,
+            test_lmdb=test_lmdb,
+            pretrained_name=args.pretrained_name,
+            epochs=1,
+            batch_size=2,
+            gradient_accumulation_steps=1,
+            lr_encoder=1e-5,
+            lr_head=1e-4,
+            weight_decay=0.0,
+            warmup_ratio=0.0,
+            min_crop_sec=args.min_crop_sec,
+            max_crop_sec=args.max_crop_sec,
+            eval_every_n_epochs=1,
+            seed=args.seed,
+            num_workers=0,
+            save=False,
+            device_arg="cpu",
+            pooling_type=args.pooling_type,
+            log_every_n_steps=1,
+            loss_ma_window=2,
+            use_amp=False,
+        )
+    elif args.one_batch_overfit_test:
         run_one_batch_overfit_test(
             train_lmdb=train_lmdb,
             pretrained_name=args.pretrained_name,

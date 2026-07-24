@@ -26,14 +26,15 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config
-from my_experiments.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists, save_metrics_report
-from my_experiments.text_utils import preprocess_text, load_fasttext_model
-from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists, save_metrics_report
+from my_experiments.utils.pretrained import get_fasttext_path
+from my_experiments.utils.text_utils import preprocess_text, load_fasttext_model
+from my_experiments.utils.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 
 MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
-DEFAULT_EMBEDDINGS_PATH = Path.home() / "fasttext_models" / "cc.ru.300.bin"
+DEFAULT_EMBEDDINGS_PATH = get_fasttext_path()
 
 
 def load_texts_from_manifest(manifest_path):
@@ -95,7 +96,8 @@ def evaluate_model(model, scaler, X_train, y_train, X_test, y_test, dataset_name
     print("ОЦЕНКА НА ОБУЧАЮЩЕЙ ВЫБОРКЕ")
     print(f"{'=' * 60}")
     train_pred = model.predict(X_train_scaled)
-    print(classification_report(y_train, train_pred, labels=TARGET_NAMES, target_names=TARGET_NAMES, zero_division=0))
+    train_report_text = classification_report(y_train, train_pred, labels=TARGET_NAMES, target_names=TARGET_NAMES, zero_division=0)
+    print(train_report_text)
 
     print(f"\n{'=' * 60}")
     print("ОЦЕНКА НА ТЕСТОВОЙ ВЫБОРКЕ")
@@ -137,7 +139,7 @@ DEFAULTS = {
 }
 
 
-def train_embeddings_logreg(embeddings_path=None, save=True, config=None):
+def train_embeddings_logreg(embeddings_path=None, save=True, config=None, train_path=None, test_path=None):
     cfg_logreg = {**DEFAULTS["logreg"], **(config or {}).get("logreg", {})}
     cfg = {**(config or {}), "logreg": cfg_logreg}
 
@@ -149,8 +151,8 @@ def train_embeddings_logreg(embeddings_path=None, save=True, config=None):
     print(f"{'=' * 60}")
     fasttext_model = load_fasttext_model(embeddings_path)
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"\n📊 Датасет: {dataset_name}\n")
 
@@ -212,7 +214,7 @@ def train_embeddings_logreg(embeddings_path=None, save=True, config=None):
     return model, scaler, dataset_name
 
 
-def load_and_evaluate(embeddings_path=None):
+def load_and_evaluate(embeddings_path=None, train_path=None, test_path=None):
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА СУЩЕСТВУЮЩЕЙ МОДЕЛИ")
     print(f"{'=' * 60}")
@@ -225,8 +227,8 @@ def load_and_evaluate(embeddings_path=None):
     print(f"{'=' * 60}")
     fasttext_model = load_fasttext_model(embeddings_path)
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -256,26 +258,31 @@ def load_and_evaluate(embeddings_path=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Обучение или загрузка модели FastText Embeddings + LogReg')
-    parser.add_argument('--mode', type=str, choices=['train', 'load', 'auto'], default='auto')
+    parser.add_argument('--mode', type=str, choices=['train', 'load', 'auto', 'smoke'], default='auto')
     parser.add_argument('--no-save', action='store_true')
     parser.add_argument('--embeddings-path', type=str, default=None)
     parser.add_argument('--config', type=str, default=None, help='Путь к JSON-конфигу (относительно configs/ или абсолютный)')
+    add_data_path_args(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
+    dataset_name = get_dataset_name(train_path)
 
-    if args.mode == 'train':
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_embeddings_logreg(embeddings_path=args.embeddings_path, save=False, config=experiment_config, train_path=train_path, test_path=test_path)
+    elif args.mode == 'train':
         print("🎯 Режим: Обучение новой модели\n")
-        train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config)
+        train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)
     elif args.mode == 'load':
         print("📂 Режим: Загрузка существующей модели\n")
-        load_and_evaluate(embeddings_path=args.embeddings_path)
+        load_and_evaluate(embeddings_path=args.embeddings_path, train_path=train_path, test_path=test_path)
     else:
         if sklearn_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME):
             print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
-            load_and_evaluate(embeddings_path=args.embeddings_path)
+            load_and_evaluate(embeddings_path=args.embeddings_path, train_path=train_path, test_path=test_path)
         else:
             print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
-            train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config)
+            train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)

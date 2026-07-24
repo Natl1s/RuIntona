@@ -47,9 +47,10 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.torch_utils import set_seed, resolve_device
-from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists, save_metrics_report
+from my_experiments.utils.torch_utils import set_seed, resolve_device
+from my_experiments.utils.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 
 try:
     from transformers import AutoModel, AutoTokenizer, get_linear_schedule_with_warmup
@@ -262,52 +263,34 @@ def save_model(
     test_metrics: dict,
     model_name: str = MODEL_NAME,
 ):
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    model_path_timestamped = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pt"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
+    # Сохраняем токенизатор отдельно (HuggingFace формат)
+    tokenizer_dir = MODELS_DIR / f"{model_name}_{dataset_name}_tokenizer"
+    tokenizer.save_pretrained(tokenizer_dir)
 
-    torch.save(checkpoint_payload, model_path)
-    torch.save(checkpoint_payload, model_path_timestamped)
-    tokenizer.save_pretrained(MODELS_DIR / f"{full_model_name}_tokenizer")
-
-    report_lines = [
-        f"model_name: {model_name}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-
-    print(f"\n{'=' * 60}")
-    print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
-    print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ Бэкап:  {model_path_timestamped.absolute()}")
-    print(f"✓ Токенайзер: {(MODELS_DIR / f'{full_model_name}_tokenizer').absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
-    print(f"{'=' * 60}")
+    extra_artifacts = {
+        "tokenizer_dir.txt": str(tokenizer_dir),
+    }
+    save_pytorch_model(
+        checkpoint_payload["model_state_dict"],
+        dataset_name,
+        models_dir=MODELS_DIR,
+        model_name=model_name,
+        training_params=training_params,
+        test_metrics=test_metrics,
+        extra_artifacts=extra_artifacts,
+        model_class="EmotionClassifier",
+        model_params=checkpoint_payload.get("model_params", {}),
+    )
 
 
 def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: str | torch.device = "cpu"):
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    if not model_path.exists():
-        raise FileNotFoundError(f"Модель не найдена! Проверьте наличие файла:\n  {model_path}")
+    checkpoint = load_pytorch_model(dataset_name, models_dir=MODELS_DIR, model_name=model_name, map_location=map_location)
+    model_params = checkpoint.get("model_params", {})
 
-    try:
-        checkpoint = torch.load(model_path, map_location=map_location, weights_only=False)
-    except TypeError:
-        checkpoint = torch.load(model_path, map_location=map_location)
-    model_params = checkpoint["model_params"]
+    # Обратная совместимость: старый формат имел model_params внутри checkpoint
+    if not model_params and "model_params" in checkpoint:
+        model_params = checkpoint["model_params"]
+
     model = EmotionClassifier(
         model_name=model_params["backbone_name"],
         num_classes=model_params["n_classes"],
@@ -316,18 +299,19 @@ def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: st
     )
     model.load_state_dict(checkpoint["model_state_dict"])
 
-    tokenizer_dir = MODELS_DIR / f"{full_model_name}_tokenizer"
+    # Ищем сохранённый токенизатор
+    full_name = f"{model_name}_{dataset_name}"
+    tokenizer_dir = MODELS_DIR / f"{full_name}_tokenizer"
     if tokenizer_dir.exists():
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir)
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_params["backbone_name"])
-    print(f"✓ Модель загружена из {model_path}")
+    print(f"✓ Модель загружена из {MODELS_DIR}")
     return model, tokenizer, checkpoint
 
 
 def model_exists(dataset_name: str, model_name: str = MODEL_NAME) -> bool:
-    full_model_name = f"{model_name}_{dataset_name}"
-    return (MODELS_DIR / f"{full_model_name}_model.pt").exists()
+    return pytorch_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
 
 
 def _build_loader(dataset, batch_size: int, shuffle: bool, use_cuda: bool):
@@ -392,6 +376,8 @@ def train_rubert(
     fp16: bool = False,
     seed: int = 42,
     device_arg: str = "auto",
+    train_path=None,
+    test_path=None,
 ):
     if epochs < 1:
         raise ValueError(f"epochs должен быть >= 1, получено: {epochs}")
@@ -427,8 +413,8 @@ def train_rubert(
         print("⚠ fp16 запрошен, но CUDA недоступна. fp16 отключён.")
     print(f"Обучение запущено на устройстве: {device}")
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"\n📊 Датасет: {dataset_name}\n")
 
@@ -709,10 +695,10 @@ def train_rubert(
     return model, dataset_name
 
 
-def load_and_evaluate(device_arg: str = "auto"):
+def load_and_evaluate(device_arg: str = "auto", train_path=None, test_path=None):
     device = resolve_device(device_arg)
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
 
     model, tokenizer, checkpoint = load_model(dataset_name, map_location=device)
@@ -764,9 +750,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["train", "load", "auto"],
+        choices=["train", "load", "auto", "smoke"],
         default="auto",
-        help="train - обучить новую модель, load - загрузить существующую, auto - загрузить если есть",
+        help="train - обучить новую модель, load - загрузить существующую, auto - загрузить если есть, smoke - быстрая проверка",
     )
     parser.add_argument("--no-save", action="store_true", help="Не сохранять модель после обучения")
     parser.add_argument("--backbone-name", type=str, default=DEFAULT_BACKBONE_NAME)
@@ -808,15 +794,43 @@ if __name__ == "__main__":
         default="auto",
         help="Устройство обучения.",
     )
+    add_data_path_args(parser)
     add_config_arg(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
-    if args.mode == "train":
+    dataset_name = get_dataset_name(train_path)
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_rubert(
+            backbone_name=args.backbone_name,
+            save=False,
+            epochs=1,
+            stage1_epochs=1,
+            batch_size=4,
+            grad_accum_steps=1,
+            max_len=32,
+            dropout=args.dropout,
+            classifier_hidden_size=args.classifier_hidden_size,
+            lr=args.lr,
+            weight_decay=args.weight_decay,
+            warmup_ratio=0.0,
+            loss_name="ce",
+            focal_gamma=2.0,
+            label_smoothing=0.0,
+            use_class_weights=False,
+            val_size=0.1,
+            fp16=False,
+            seed=args.seed,
+            device_arg="cpu",
+            train_path=train_path,
+            test_path=test_path,
+        )
+    elif args.mode == "train":
         train_rubert(
             backbone_name=args.backbone_name,
             save=not args.no_save,
@@ -838,13 +852,15 @@ if __name__ == "__main__":
             fp16=args.fp16,
             seed=args.seed,
             device_arg=args.device,
+            train_path=train_path,
+            test_path=test_path,
         )
     elif args.mode == "load":
-        load_and_evaluate(device_arg=args.device)
+        load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
     else:
         if model_exists(dataset_name):
             print("📂 Режим: AUTO - найдена существующая модель, загружаем...\n")
-            load_and_evaluate(device_arg=args.device)
+            load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
         else:
             print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
             train_rubert(
@@ -868,4 +884,6 @@ if __name__ == "__main__":
                 fp16=args.fp16,
                 seed=args.seed,
                 device_arg=args.device,
+                train_path=train_path,
+                test_path=test_path,
             )

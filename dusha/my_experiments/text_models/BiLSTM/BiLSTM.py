@@ -38,10 +38,12 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.torch_utils import set_seed, resolve_device
-from my_experiments.text_utils import preprocess_text, load_fasttext_model
-from my_experiments.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists, save_metrics_report
+from my_experiments.utils.pretrained import get_fasttext_path
+from my_experiments.utils.torch_utils import set_seed, resolve_device
+from my_experiments.utils.text_utils import preprocess_text, load_fasttext_model, GENSIM_AVAILABLE
+from my_experiments.utils.lmdb_utils import load_texts_from_lmdb as _load_texts_from_lmdb
 
 
 def print(*args, **kwargs):
@@ -53,7 +55,7 @@ def print(*args, **kwargs):
 
 MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
-DEFAULT_EMBEDDINGS_PATH = Path.home() / "fasttext_models" / "cc.ru.300.bin"
+DEFAULT_EMBEDDINGS_PATH = get_fasttext_path()
 
 EMO2IDX = {name: i for i, name in enumerate(TARGET_NAMES)}
 
@@ -255,52 +257,40 @@ def save_model(
     test_metrics: dict,
     model_name: str = MODEL_NAME,
 ):
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    model_path_timestamped = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pt"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
-
-    torch.save(checkpoint_payload, model_path)
-    torch.save(checkpoint_payload, model_path_timestamped)
-
-    report_lines = [
-        f"model_name: {model_name}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-
-    print(f"\n{'=' * 60}")
-    print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
-    print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ Бэкап:  {model_path_timestamped.absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
-    print(f"{'=' * 60}")
+    extra_artifacts = {
+        "embedding_matrix.pkl": checkpoint_payload.get("embedding_matrix"),
+        "word2idx.json": checkpoint_payload.get("word2idx"),
+    }
+    save_pytorch_model(
+        checkpoint_payload["model_state_dict"],
+        dataset_name,
+        models_dir=MODELS_DIR,
+        model_name=model_name,
+        training_params=training_params,
+        test_metrics=test_metrics,
+        extra_artifacts=extra_artifacts,
+        model_class="BiLSTMEmotionClassifier",
+        model_params=checkpoint_payload.get("model_params", {}),
+    )
 
 
 def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: str | torch.device = "cpu"):
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pt"
-    if not model_path.exists():
-        raise FileNotFoundError(f"Модель не найдена! Проверьте наличие файла:\n  {model_path}")
+    checkpoint = load_pytorch_model(dataset_name, models_dir=MODELS_DIR, model_name=model_name, map_location=map_location)
 
-    try:
-        checkpoint = torch.load(model_path, map_location=map_location, weights_only=False)
-    except TypeError:
-        checkpoint = torch.load(model_path, map_location=map_location)
-    model_params = checkpoint["model_params"]
+    # Обратная совместимость: поддержка старого формата (embedding_matrix в checkpoint)
+    if "embedding_matrix" in checkpoint:
+        embedding_matrix = checkpoint["embedding_matrix"]
+        model_params = checkpoint["model_params"]
+        word2idx = checkpoint.get("word2idx", {})
+    elif "extra_artifacts" in checkpoint:
+        embedding_matrix = checkpoint["extra_artifacts"].get("embedding_matrix.pkl")
+        word2idx = checkpoint["extra_artifacts"].get("word2idx.json", {})
+        model_params = checkpoint.get("model_params", {})
+    else:
+        raise KeyError("Не найдены embedding_matrix или extra_artifacts в checkpoint")
+
     model = BiLSTMEmotionClassifier(
-        embedding_matrix=checkpoint["embedding_matrix"],
+        embedding_matrix=embedding_matrix,
         hidden_size=model_params["hidden_size"],
         num_layers=model_params["num_layers"],
         dropout=model_params["dropout"],
@@ -309,13 +299,12 @@ def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: st
         pooling_mode=model_params.get("pooling_mode", "last_hidden"),
     )
     model.load_state_dict(checkpoint["model_state_dict"])
-    print(f"✓ Модель загружена из {model_path}")
+    print(f"✓ Модель загружена из {MODELS_DIR}")
     return model, checkpoint
 
 
 def model_exists(dataset_name: str, model_name: str = MODEL_NAME) -> bool:
-    full_model_name = f"{model_name}_{dataset_name}"
-    return (MODELS_DIR / f"{full_model_name}_model.pt").exists()
+    return pytorch_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
 
 
 def _build_loader(dataset, batch_size: int, shuffle: bool, use_cuda: bool):
@@ -346,6 +335,8 @@ def train_bilstm(
     val_size: float = 0.1,
     seed: int = 42,
     device_arg: str = "auto",
+    train_path=None,
+    test_path=None,
 ):
     if embeddings_path is None:
         embeddings_path = DEFAULT_EMBEDDINGS_PATH
@@ -360,8 +351,8 @@ def train_bilstm(
     print(f"{'=' * 60}")
     fasttext_model = load_fasttext_model(embeddings_path)
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"\n📊 Датасет: {dataset_name}\n")
 
@@ -598,10 +589,10 @@ def train_bilstm(
     return model, dataset_name
 
 
-def load_and_evaluate(device_arg: str = "auto"):
+def load_and_evaluate(device_arg: str = "auto", train_path=None, test_path=None):
     device = resolve_device(device_arg)
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
 
     model, checkpoint = load_model(dataset_name, map_location=device)
@@ -654,9 +645,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--mode",
         type=str,
-        choices=["train", "load", "auto"],
+        choices=["train", "load", "auto", "smoke"],
         default="auto",
-        help="train - обучить новую модель, load - загрузить существующую, auto - загрузить если есть",
+        help="train - обучить новую модель, load - загрузить существующую, auto - загрузить если есть, smoke - быстрая проверка",
     )
     parser.add_argument("--no-save", action="store_true", help="Не сохранять модель после обучения")
     parser.add_argument(
@@ -703,9 +694,11 @@ if __name__ == "__main__":
         default="auto",
         help="Устройство обучения.",
     )
+    add_data_path_args(parser)
     add_config_arg(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
@@ -715,8 +708,30 @@ if __name__ == "__main__":
             "Требуется библиотека gensim. Установите: pip install gensim или poetry add gensim"
         )
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
-    if args.mode == "train":
+    dataset_name = get_dataset_name(train_path)
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_bilstm(
+            embeddings_path=None,
+            save=False,
+            epochs=2,
+            batch_size=8,
+            max_len=32,
+            max_vocab_size=500,
+            min_freq=1,
+            hidden_size=32,
+            num_layers=1,
+            dropout=0.1,
+            freeze_embeddings=True,
+            lr=1e-3,
+            weight_decay=1e-5,
+            val_size=0.1,
+            seed=42,
+            device_arg="cpu",
+            train_path=train_path,
+            test_path=test_path,
+        )
+    elif args.mode == "train":
         train_bilstm(
             embeddings_path=args.embeddings_path,
             save=not args.no_save,
@@ -735,13 +750,15 @@ if __name__ == "__main__":
             val_size=args.val_size,
             seed=args.seed,
             device_arg=args.device,
+            train_path=train_path,
+            test_path=test_path,
         )
     elif args.mode == "load":
-        load_and_evaluate(device_arg=args.device)
+        load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
     else:
         if model_exists(dataset_name):
             print("📂 Режим: AUTO - найдена существующая модель, загружаем...\n")
-            load_and_evaluate(device_arg=args.device)
+            load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
         else:
             print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
             train_bilstm(
@@ -762,4 +779,6 @@ if __name__ == "__main__":
                 val_size=args.val_size,
                 seed=args.seed,
                 device_arg=args.device,
+                train_path=train_path,
+                test_path=test_path,
             )

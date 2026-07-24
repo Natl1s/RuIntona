@@ -2,7 +2,7 @@
 Общие утилиты конфигурации для всех экспериментов.
 
 Централизованно загружает data.config / train_data.config / test_data.config,
-предоставляет константы (EMO2LABEL, TARGET_NAMES, MODELS_DIR, MODEL_NAME)
+предоставляет константы (EMO2LABEL, TARGET_NAMES, CHECKPOINTS_DIR)
 и вспомогательные функции.
 """
 
@@ -36,6 +36,51 @@ if str(PROJECT_ROOT) not in sys.path:
 # ---------------------------------------------------------------------------
 
 MY_EXPERIMENTS_DIR: Path = PROJECT_ROOT / "my_experiments"
+
+
+# ---------------------------------------------------------------------------
+# CHECKPOINTS_DIR
+# ---------------------------------------------------------------------------
+
+CHECKPOINTS_DIR: Path = MY_EXPERIMENTS_DIR / "checkpoints"
+
+
+def checkpoints_dir_for(caller_file: Path | str, subfolder: str = "") -> Path:
+    """
+    Возвращает подпапку checkpoints/{subfolder}/ для данного типа моделей.
+
+    Args:
+        caller_file: __file__ вызывающего скрипта
+        subfolder: 'text', 'audio', 'multimodal' или '' (корневая)
+
+    Returns:
+        Path к подпапке checkpoints
+    """
+    folder = CHECKPOINTS_DIR / subfolder if subfolder else CHECKPOINTS_DIR
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder
+
+
+def _detect_subfolder(caller_file: Path | str) -> str:
+    """Авто-определение subfolder по пути скрипта."""
+    path_str = str(Path(caller_file).resolve())
+    if "/text_models/" in path_str:
+        return "text"
+    elif "/audio_models/" in path_str:
+        return "audio"
+    elif "/multimodal/" in path_str:
+        return "multimodal"
+    return ""
+
+
+def models_dir_for(caller_file: Path | str) -> Path:
+    """
+    Возвращает checkpoints/{subfolder}/ для вызывающего скрипта.
+
+    Автоматически определяет subfolder по пути к скрипту.
+    """
+    subfolder = _detect_subfolder(caller_file)
+    return checkpoints_dir_for(caller_file, subfolder)
 
 
 # ---------------------------------------------------------------------------
@@ -97,11 +142,6 @@ def get_dataset_name(train_manifest_path: Path | str) -> str:
     return Path(train_manifest_path).stem
 
 
-def models_dir_for(caller_file: Path | str) -> Path:
-    """Возвращает папку models_params рядом с вызывающим скриптом."""
-    return Path(caller_file).parent / "models_params"
-
-
 def resolve_aggregated_dir(dataset_path: Path) -> Path:
     """Ищет aggregated_dataset в стандартных расположениях."""
     candidates = [
@@ -112,6 +152,30 @@ def resolve_aggregated_dir(dataset_path: Path) -> Path:
         if candidate.exists():
             return candidate
     return candidates[0]
+
+
+def resolve_model_path(
+    subfolder: str,
+    model_name: str,
+    dataset_name: str,
+) -> Path:
+    """
+    Резолвит путь к чекпоинту модели по конвенции.
+
+    Пример:
+        resolve_model_path('audio', 'CNN', 'dusha_balanced')
+        → checkpoints/audio/CNN_dusha_balanced_model.pt
+    """
+    models_dir = CHECKPOINTS_DIR / subfolder
+    # Сначала ищем .pt (PyTorch), потом .pkl (sklearn)
+    pt_path = models_dir / f"{model_name}_{dataset_name}_model.pt"
+    if pt_path.exists():
+        return pt_path
+    pkl_path = models_dir / f"{model_name}_{dataset_name}_model.pkl"
+    if pkl_path.exists():
+        return pkl_path
+    # Возвращаем .pt по умолчанию
+    return pt_path
 
 
 # ---------------------------------------------------------------------------
@@ -181,3 +245,62 @@ def add_config_arg(parser: argparse.ArgumentParser) -> None:
             "Пример: --config text/bilstm_text.json"
         ),
     )
+
+
+def add_data_path_args(parser: argparse.ArgumentParser) -> None:
+    """Добавляет --train-data-path и --test-data-path аргументы."""
+    parser.add_argument(
+        "--train-data-path",
+        type=Path,
+        default=None,
+        help="Путь к train LMDB (по умолчанию из train_data.config)",
+    )
+    parser.add_argument(
+        "--test-data-path",
+        type=Path,
+        default=None,
+        help="Путь к test LMDB (по умолчанию из test_data.config)",
+    )
+
+
+def resolve_data_paths(args) -> tuple[Path, Path]:
+    """Возвращает (train_path, test_path) — из CLI аргументов или из конфигов."""
+    train_path = getattr(args, "train_data_path", None) or TRAIN_DATA_PATH
+    test_path = getattr(args, "test_data_path", None) or TEST_DATA_PATH
+    return train_path, test_path
+
+
+# ---------------------------------------------------------------------------
+# Multimodal: поиск предобученных моделей
+# ---------------------------------------------------------------------------
+
+def find_pretrained_model(
+    subfolder: str,
+    model_name: str,
+    dataset_name: str | None = None,
+) -> Path | None:
+    """
+    Ищет сохранённую модель в checkpoints/{subfolder}/.
+
+    Если dataset_name не указан, ищет любой чекпоинт для данного model_name.
+    Возвращает Path к checkpoint или None.
+    """
+    models_dir = CHECKPOINTS_DIR / subfolder
+    if not models_dir.exists():
+        return None
+
+    if dataset_name:
+        # Ищем конкретный чекпоинт
+        pt_path = models_dir / f"{model_name}_{dataset_name}_model.pt"
+        if pt_path.exists():
+            return pt_path
+        pkl_path = models_dir / f"{model_name}_{dataset_name}_model.pkl"
+        if pkl_path.exists():
+            return pkl_path
+        return None
+
+    # Ищем любой чекпоинт для данной модели
+    for ext in ("*.pt", "*.pkl"):
+        for p in sorted(models_dir.glob(f"{model_name}_*{ext}"), reverse=True):
+            return p
+    return None

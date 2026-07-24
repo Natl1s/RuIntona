@@ -1,3 +1,8 @@
 dataset
 models_params
 models
+checkpoints/pretrained/
+checkpoints/text/
+checkpoints/audio/
+checkpoints/multimodal/
+!checkpoints/**/.gitkeep

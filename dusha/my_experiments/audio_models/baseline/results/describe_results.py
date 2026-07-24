@@ -91,17 +91,12 @@ def load_features_from_manifest(manifest_path: Path, base_path: Optional[Path] =
 
 def resolve_models_dir() -> Path:
     """Находит директорию с параметрами baseline-моделей."""
-    baseline_dir = Path(__file__).parent.parent
-    candidates = [
-        baseline_dir / "model_params",   # путь из запроса
-        baseline_dir / "models_params",  # фактический путь в проекте
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
+    checkpoints_audio = Path(__file__).resolve().parent.parent.parent.parent / "checkpoints" / "audio"
+    if checkpoints_audio.exists():
+        return checkpoints_audio
     raise FileNotFoundError(
-        "Не найдена директория с моделями. Ожидались: "
-        + ", ".join(str(p) for p in candidates)
+        "Не найдена директория с моделями. Ожидалась: "
+        + str(checkpoints_audio)
     )
 
 

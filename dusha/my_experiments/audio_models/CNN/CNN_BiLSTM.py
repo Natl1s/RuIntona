@@ -31,13 +31,13 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.model_io import save_pytorch_model
-from my_experiments.metrics import weighted_accuracy
-from my_experiments.torch_utils import set_seed, resolve_device
-from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists
+from my_experiments.utils.metrics import weighted_accuracy
+from my_experiments.utils.torch_utils import set_seed, resolve_device
+from my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 
 
@@ -342,9 +342,8 @@ def train_cnn_bilstm(
 
 def main():
     parser = argparse.ArgumentParser(description="CNN + BiLSTM baseline для классификации эмоций из LMDB.")
-    parser.add_argument("--aggregated-dir", type=Path, default=TRAIN_DATA_PATH.parent)
-    parser.add_argument("--train-lmdb-name", type=str, default=TRAIN_DATA_PATH.name)
-    parser.add_argument("--test-lmdb-name", type=str, default=TEST_DATA_PATH.name)
+    add_data_path_args(parser)
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
@@ -359,26 +358,38 @@ def main():
     add_config_arg(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
 
-    train_lmdb = args.aggregated_dir / args.train_lmdb_name
-    test_lmdb = args.aggregated_dir / args.test_lmdb_name
+    train_lmdb = train_path
+    test_lmdb = test_path
 
     if not train_lmdb.exists():
         raise FileNotFoundError(f"Train LMDB не найден: {train_lmdb}")
     if not test_lmdb.exists():
         raise FileNotFoundError(f"Test LMDB не найден: {test_lmdb}")
 
-    train_cnn_bilstm(
-        train_lmdb=train_lmdb, test_lmdb=test_lmdb,
-        epochs=args.epochs, batch_size=args.batch_size, lr=args.lr,
-        weight_decay=args.weight_decay, seed=args.seed,
-        save=not args.no_save, device_arg=args.device,
-        lstm_hidden_size=args.lstm_hidden_size, lstm_layers=args.lstm_layers,
-        lstm_dropout=args.lstm_dropout, bidirectional=not args.unidirectional,
-    )
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_cnn_bilstm(
+            train_lmdb=train_lmdb, test_lmdb=test_lmdb,
+            epochs=2, batch_size=8, lr=args.lr,
+            weight_decay=args.weight_decay, seed=args.seed,
+            save=False, device_arg="cpu",
+            lstm_hidden_size=32, lstm_layers=1,
+            lstm_dropout=0.0, bidirectional=True,
+        )
+    else:
+        train_cnn_bilstm(
+            train_lmdb=train_lmdb, test_lmdb=test_lmdb,
+            epochs=args.epochs, batch_size=args.batch_size, lr=args.lr,
+            weight_decay=args.weight_decay, seed=args.seed,
+            save=not args.no_save, device_arg=args.device,
+            lstm_hidden_size=args.lstm_hidden_size, lstm_layers=args.lstm_layers,
+            lstm_dropout=args.lstm_dropout, bidirectional=not args.unidirectional,
+        )
 
 
 if __name__ == "__main__":

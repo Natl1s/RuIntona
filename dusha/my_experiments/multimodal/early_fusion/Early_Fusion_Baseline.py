@@ -36,12 +36,14 @@ if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
 from my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
-from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
+from my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 from my_experiments.text_models.transformers.RuBERT import EmotionClassifier
-from my_experiments.config_utils import (
-    MY_EXPERIMENTS_DIR, TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES,
-    load_experiment_config, apply_config_to_args, add_config_arg,
+from my_experiments.utils.config_utils import (
+    MY_EXPERIMENTS_DIR, TARGET_NAMES, CHECKPOINTS_DIR,
+    find_pretrained_model, resolve_model_path, models_dir_for,
+    load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths,
 )
+from my_experiments.utils.model_io import load_pytorch_model, load_sklearn_model
 
 
 def print(*args, **kwargs):
@@ -52,26 +54,15 @@ def print(*args, **kwargs):
         builtins.print(prefix, **kwargs)
 
 
-DEFAULT_TRAIN_LMDB = TRAIN_DATA_PATH
-DEFAULT_TEST_LMDB = TEST_DATA_PATH
-
 DEFAULT_AUDIO_MODEL_PATH = (
-    MY_EXPERIMENTS_DIR
-    / "audio_models"
-    / "CNN"
-    / "models_params"
-    / "CNN_BiLSTM_combine_balanced_train_model.pt"
+    CHECKPOINTS_DIR / "audio" / "CNN_BiLSTM_combine_balanced_train_model.pt"
 )
 DEFAULT_TEXT_MODEL_PATH = (
-    MY_EXPERIMENTS_DIR
-    / "text_models"
-    / "transformers"
-    / "models_params"
-    / "RuBERT_dusha_resd_train_model.pt"
+    CHECKPOINTS_DIR / "text" / "RuBERT_dusha_resd_train_model.pt"
 )
 
 DEFAULT_RESULTS_DIR = Path(__file__).resolve().parent / "results"
-MODELS_DIR = Path(__file__).resolve().parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 
 
@@ -553,8 +544,7 @@ def main():
             "Early Fusion baseline: frozen CNN+BiLSTM (audio) + frozen RuBERT (text) + trainable MLP."
         )
     )
-    parser.add_argument("--train-lmdb", type=Path, default=DEFAULT_TRAIN_LMDB)
-    parser.add_argument("--test-lmdb", type=Path, default=DEFAULT_TEST_LMDB)
+    add_data_path_args(parser)
     parser.add_argument("--audio-model-path", type=Path, default=DEFAULT_AUDIO_MODEL_PATH)
     parser.add_argument("--text-model-path", type=Path, default=DEFAULT_TEXT_MODEL_PATH)
     parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS_DIR)
@@ -573,12 +563,25 @@ def main():
     parser.add_argument("--audio-lstm-layers", type=int, default=2)
     parser.add_argument("--audio-lstm-dropout", type=float, default=0.2)
     parser.add_argument("--audio-unidirectional", action="store_true")
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     add_config_arg(parser)
     args = parser.parse_args()
+
+    train_path, test_path = resolve_data_paths(args)
+    args.train_lmdb = train_path
+    args.test_lmdb = test_path
 
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
+
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        args.epochs = 2
+        args.batch_size = 8
+        args.device = "cpu"
+        args.projection_dim = 32
+        args.dropout = 0.1
 
     if not args.train_lmdb.exists():
         raise FileNotFoundError(f"Train LMDB не найден: {args.train_lmdb}")

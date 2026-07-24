@@ -14,10 +14,10 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config
-from my_experiments.cli_utils import add_mode_args, dispatch_mode
-from my_experiments.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists
-from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, add_data_path_args, resolve_data_paths
+from my_experiments.utils.cli_utils import add_mode_args, dispatch_mode
+from my_experiments.utils.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists
+from my_experiments.utils.lmdb_utils import load_feature_vectors_from_lmdb
 
 MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
@@ -99,10 +99,10 @@ DEFAULTS = {
 }
 
 
-def train_logistic_regression(save=True, config=None):
+def train_logistic_regression(save=True, config=None, train_path=None, test_path=None):
     cfg = {**DEFAULTS, **(config or {})}
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -155,14 +155,14 @@ def train_logistic_regression(save=True, config=None):
     return model, scaler, dataset_name
 
 
-def load_and_evaluate():
+def load_and_evaluate(train_path=None, test_path=None):
     """Загрузить существующую модель и оценить её."""
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА СУЩЕСТВУЮЩЕЙ МОДЕЛИ")
     print(f"{'=' * 60}")
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -187,16 +187,18 @@ if __name__ == "__main__":
         description="Обучение или загрузка логистической регрессии для классификации эмоций"
     )
     add_mode_args(parser)
+    add_data_path_args(parser)
     parser.add_argument("--config", type=str, default=None, help="Путь к JSON-конфигу (относительно configs/ или абсолютный)")
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
+    dataset_name = get_dataset_name(train_path)
     dispatch_mode(
         args,
-        train_fn=lambda save: train_logistic_regression(save=save, config=experiment_config),
-        load_fn=load_and_evaluate,
+        train_fn=lambda save: train_logistic_regression(save=save, config=experiment_config, train_path=train_path, test_path=test_path),
+        load_fn=lambda: load_and_evaluate(train_path=train_path, test_path=test_path),
         model_exists_fn=lambda dn: sklearn_model_exists(dn, models_dir=MODELS_DIR, model_name=MODEL_NAME),
         dataset_name=dataset_name,
     )

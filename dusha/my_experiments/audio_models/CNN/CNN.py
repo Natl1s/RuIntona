@@ -26,13 +26,13 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, load_experiment_config
-from my_experiments.model_io import save_pytorch_model
-from my_experiments.metrics import weighted_accuracy
-from my_experiments.torch_utils import set_seed, resolve_device
-from my_experiments.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
+from my_experiments.utils.config_utils import TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_pytorch_model, load_pytorch_model, pytorch_model_exists
+from my_experiments.utils.metrics import weighted_accuracy
+from my_experiments.utils.torch_utils import set_seed, resolve_device
+from my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index
 
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 
 
@@ -296,9 +296,8 @@ CNN_DEFAULTS = {
 
 def main():
     parser = argparse.ArgumentParser(description="CNN baseline для классификации эмоций из LMDB.")
-    parser.add_argument("--aggregated-dir", type=Path, default=TRAIN_DATA_PATH.parent)
-    parser.add_argument("--train-lmdb-name", type=str, default=TRAIN_DATA_PATH.name)
-    parser.add_argument("--test-lmdb-name", type=str, default=TEST_DATA_PATH.name)
+    add_data_path_args(parser)
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     parser.add_argument("--conv-channels", type=int, nargs="+", default=None, help="Каналы свёрточных слоёв (по умолчанию: 16 32 64)")
     parser.add_argument("--classifier-dropout", type=float, default=None, help="Dropout в классификаторе (по умолчанию: 0.2)")
     parser.add_argument("--epochs", type=int, default=None)
@@ -311,6 +310,7 @@ def main():
     parser.add_argument("--config", type=str, default=None, help="Путь к JSON-конфигу (относительно configs/ или абсолютный)")
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     cfg = {**CNN_DEFAULTS, **(load_experiment_config(args.config) or {})}
 
     # CLI-флаги перезаписывают конфиг
@@ -324,21 +324,31 @@ def main():
     if args.conv_channels is not None:
         cfg["conv_channels"] = args.conv_channels
 
-    train_lmdb = args.aggregated_dir / args.train_lmdb_name
-    test_lmdb = args.aggregated_dir / args.test_lmdb_name
+    train_lmdb = train_path
+    test_lmdb = test_path
 
     if not train_lmdb.exists():
         raise FileNotFoundError(f"Train LMDB не найден: {train_lmdb}")
     if not test_lmdb.exists():
         raise FileNotFoundError(f"Test LMDB не найден: {test_lmdb}")
 
-    train_cnn(
-        train_lmdb=train_lmdb, test_lmdb=test_lmdb,
-        epochs=cfg["epochs"], batch_size=cfg["batch_size"], lr=cfg["lr"],
-        weight_decay=cfg["weight_decay"], seed=cfg["seed"],
-        save=not args.no_save, device_arg=cfg.get("device", "cuda"),
-        conv_channels=cfg["conv_channels"], classifier_dropout=cfg["classifier_dropout"],
-    )
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_cnn(
+            train_lmdb=train_lmdb, test_lmdb=test_lmdb,
+            epochs=2, batch_size=8, lr=cfg["lr"],
+            weight_decay=cfg["weight_decay"], seed=cfg["seed"],
+            save=False, device_arg="cpu",
+            conv_channels=[8, 16], classifier_dropout=0.1,
+        )
+    else:
+        train_cnn(
+            train_lmdb=train_lmdb, test_lmdb=test_lmdb,
+            epochs=cfg["epochs"], batch_size=cfg["batch_size"], lr=cfg["lr"],
+            weight_decay=cfg["weight_decay"], seed=cfg["seed"],
+            save=not args.no_save, device_arg=cfg.get("device", "cuda"),
+            conv_channels=cfg["conv_channels"], classifier_dropout=cfg["classifier_dropout"],
+        )
 
 
 if __name__ == "__main__":

@@ -29,8 +29,9 @@ for _parent in Path(__file__).resolve().parents:
 if _PROJECT_ROOT and str(_PROJECT_ROOT) not in sys.path:
     sys.path.append(str(_PROJECT_ROOT))
 
-from my_experiments.config_utils import DATASET_PATH, TRAIN_DATA_PATH, TEST_DATA_PATH, TARGET_NAMES, get_dataset_name, load_experiment_config, apply_config_to_args, add_config_arg
-from my_experiments.lmdb_utils import load_feature_vectors_from_lmdb
+from my_experiments.utils.config_utils import DATASET_PATH, TARGET_NAMES, get_dataset_name, models_dir_for, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths
+from my_experiments.utils.model_io import save_sklearn_model, load_sklearn_model, sklearn_model_exists
+from my_experiments.utils.lmdb_utils import load_feature_vectors_from_lmdb
 
 try:
     from tqdm import tqdm
@@ -39,7 +40,7 @@ except ImportError:
         return iterable
 
 
-MODELS_DIR = Path(__file__).parent / "models_params"
+MODELS_DIR = models_dir_for(__file__)
 MODEL_NAME = Path(__file__).stem
 
 EMOTIONS = TARGET_NAMES
@@ -113,62 +114,21 @@ def save_model(
     training_params=None,
     test_metrics=None,
 ):
-    """Сохраняет модель в файл"""
-    MODELS_DIR.mkdir(parents=True, exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pkl"
-    model_path_timestamped = MODELS_DIR / f"{full_model_name}_model_{timestamp}.pkl"
-    report_path = MODELS_DIR / f"{full_model_name}_training_report.txt"
-
-    joblib.dump(model, model_path)
-    joblib.dump({"model": model}, model_path_timestamped)
-
-    report_lines = [
-        f"model_name: {model_name}",
-        f"dataset_name: {dataset_name}",
-        f"saved_at: {timestamp}",
-        "",
-        "training_params:",
-        json.dumps(training_params or {}, ensure_ascii=False, indent=2),
-        "",
-        "test_metrics:",
-        json.dumps(test_metrics or {}, ensure_ascii=False, indent=2),
-        "",
-    ]
-    report_path.write_text("\n".join(report_lines), encoding="utf-8")
-
-    print(f"\n{'=' * 60}")
-    print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
-    print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ Бэкап:  {model_path_timestamped.absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
-    print(f"{'=' * 60}")
+    save_sklearn_model(
+        model, None, dataset_name,
+        models_dir=MODELS_DIR, model_name=model_name,
+        artifact_name="scaler",
+        training_params=training_params, test_metrics=test_metrics,
+    )
 
 
 def load_model(dataset_name, model_name=MODEL_NAME):
-    """Загружает модель из файла"""
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pkl"
-
-    if not model_path.exists():
-        raise FileNotFoundError(
-            f"Модель не найдена! Проверьте наличие файла:\n"
-            f"  {model_path}"
-        )
-
-    model = joblib.load(model_path)
-    print(f"✓ Модель загружена из {model_path}")
+    model, _ = load_sklearn_model(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
     return model
 
 
 def model_exists(dataset_name, model_name=MODEL_NAME):
-    """Проверяет существование сохраненной модели"""
-    full_model_name = f"{model_name}_{dataset_name}"
-    model_path = MODELS_DIR / f"{full_model_name}_model.pkl"
-    return model_path.exists()
+    return sklearn_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=model_name)
 
 
 def _init_opensmile_extractor():
@@ -496,9 +456,14 @@ def train_opensmile_boosting(
     max_train_samples=None,
     max_test_samples=None,
     use_cache=True,
+    train_path=None,
+    test_path=None,
+    dataset_path=None,
 ):
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
+    if dataset_path is None:
+        dataset_path = DATASET_PATH
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -521,7 +486,7 @@ def train_opensmile_boosting(
 
     print("\nИзвлечение OpenSMILE eGeMAPS признаков для test...")
     X_test, y_test, _, _, n_test_skipped = load_opensmile_features_from_manifest(
-        test_manifest, dataset_root=DATASET_PATH, cache_path=test_cache,
+        test_manifest, dataset_root=dataset_path, cache_path=test_cache,
         max_samples=max_test_samples, progress_desc="OpenSMILE test",
     )
     print(f"Количество тестовых примеров: {len(y_test)}")
@@ -554,7 +519,7 @@ def train_opensmile_boosting(
             "feature_set": "OpenSMILE eGeMAPSv02 Functionals",
             "train_manifest": str(train_manifest),
             "test_manifest": str(test_manifest),
-            "dataset_root": str(DATASET_PATH),
+            "dataset_root": str(dataset_path),
             "max_train_samples": max_train_samples,
             "max_test_samples": max_test_samples,
             "use_cache": use_cache,
@@ -573,14 +538,19 @@ def load_and_evaluate(
     max_train_samples=None,
     max_test_samples=None,
     use_cache=True,
+    train_path=None,
+    test_path=None,
+    dataset_path=None,
 ):
     """Загрузить существующую модель и оценить её"""
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА СУЩЕСТВУЮЩЕЙ МОДЕЛИ")
     print(f"{'=' * 60}")
 
-    train_manifest = TRAIN_DATA_PATH
-    test_manifest = TEST_DATA_PATH
+    train_manifest = train_path
+    test_manifest = test_path
+    if dataset_path is None:
+        dataset_path = DATASET_PATH
     dataset_name = get_dataset_name(train_manifest)
     print(f"📊 Датасет: {dataset_name}\n")
 
@@ -602,7 +572,7 @@ def load_and_evaluate(
 
     print("\nИзвлечение test-признаков...")
     X_test, y_test, _, _, _ = load_opensmile_features_from_manifest(
-        test_manifest, dataset_root=DATASET_PATH, cache_path=test_cache,
+        test_manifest, dataset_root=dataset_path, cache_path=test_cache,
         max_samples=max_test_samples, progress_desc="OpenSMILE test",
     )
     print(f"Количество тестовых примеров: {len(y_test)}")
@@ -615,7 +585,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Обучение или загрузка OpenSMILE(eGeMAPS)+XGBoost/LightGBM для классификации эмоций"
     )
-    parser.add_argument("--mode", type=str, choices=["train", "load", "auto"], default="auto")
+    parser.add_argument("--mode", type=str, choices=["train", "load", "auto", "smoke"], default="auto")
     parser.add_argument("--no-save", action="store_true")
     parser.add_argument("--model-type", type=str, choices=["auto", "xgboost", "lightgbm"], default="auto")
     parser.add_argument("--n-estimators", type=int, default=500)
@@ -625,14 +595,16 @@ if __name__ == "__main__":
     parser.add_argument("--max-train-samples", type=int, default=None)
     parser.add_argument("--max-test-samples", type=int, default=None)
     parser.add_argument("--no-cache", action="store_true")
+    add_data_path_args(parser)
     add_config_arg(parser)
     args = parser.parse_args()
 
+    train_path, test_path = resolve_data_paths(args)
     experiment_config = load_experiment_config(args.config)
     if experiment_config:
         args = apply_config_to_args(args, experiment_config)
 
-    dataset_name = get_dataset_name(TRAIN_DATA_PATH)
+    dataset_name = get_dataset_name(train_path)
 
     common_kwargs = {
         "model_type": args.model_type,
@@ -643,9 +615,21 @@ if __name__ == "__main__":
         "max_train_samples": args.max_train_samples,
         "max_test_samples": args.max_test_samples,
         "use_cache": not args.no_cache,
+        "train_path": train_path,
+        "test_path": test_path,
     }
 
-    if args.mode == "train":
+    if args.mode == "smoke":
+        print("💨 Режим: Smoke-тест\n")
+        train_opensmile_boosting(
+            save=False, model_type=args.model_type,
+            random_state=args.random_state,
+            n_estimators=10, learning_rate=0.1, max_depth=3,
+            max_train_samples=100, max_test_samples=50,
+            use_cache=not args.no_cache,
+            train_path=train_path, test_path=test_path,
+        )
+    elif args.mode == "train":
         print("🎯 Режим: Обучение новой модели\n")
         train_opensmile_boosting(save=not args.no_save, **common_kwargs)
     elif args.mode == "load":
