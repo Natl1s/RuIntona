@@ -1,0 +1,23 @@
+{
+    "_description": "RuBERT (DeepPavlov) для классификации эмоций по тексту",
+    "_script": "dusha/my_experiments/text_models/transformers/RuBERT.py",
+
+    "backbone_name": "DeepPavlov/rubert-base-cased",
+    "epochs": 15,
+    "stage1_epochs": 1,
+    "batch_size": 16,
+    "grad_accum_steps": 8,
+    "max_len": 128,
+    "dropout": 0.2,
+    "classifier_hidden_size": null,
+    "lr": 2e-5,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "loss_name": "ce",
+    "focal_gamma": 2.0,
+    "label_smoothing": 0.05,
+    "use_class_weights": true,
+    "val_size": 0.2,
+    "fp16": false,
+    "seed": 42
+}

@@ -1,0 +1,59 @@
+{
+  "saved_at": "2026-05-23T16:50:03",
+  "model_name": "xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned",
+  "feature_extractor_name": "facebook/hubert-large-ls960-ft",
+  "lmdb_path": "/run/media/syori/500G/dusha/dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/dusha_resd_test.lmdb",
+  "device": "cuda",
+  "metrics": {
+    "loss": 0.5708281445470825,
+    "accuracy": 0.8051692865779927,
+    "wa": 0.8051692865779927,
+    "balanced_accuracy": 0.8127411460436325,
+    "uar": 0.8127411460436325,
+    "precision_macro": 0.8455262571383348,
+    "recall_macro": 0.8127411460436325,
+    "f1_macro": 0.8150100102376984,
+    "f1_weighted": 0.8110608963482472,
+    "mcc": 0.7509747399752614,
+    "top2_accuracy": 0.9588875453446191,
+    "roc_auc_ovr_macro": 0.9708300733720521,
+    "log_loss": 0.5708281445703295
+  },
+  "classification_report_text": "              precision    recall  f1-score   support\n\n       angry     0.9077    0.8353    0.8700      1378\n         sad     0.9756    0.7049    0.8185      2213\n     neutral     0.6146    0.9208    0.7372      1730\n    positive     0.8842    0.7900    0.8344      1295\n\n    accuracy                         0.8052      6616\n   macro avg     0.8455    0.8127    0.8150      6616\nweighted avg     0.8492    0.8052    0.8111      6616\n",
+  "confusion_matrix": [
+    [
+      1151,
+      3,
+      172,
+      52
+    ],
+    [
+      22,
+      1560,
+      611,
+      20
+    ],
+    [
+      46,
+      29,
+      1593,
+      62
+    ],
+    [
+      49,
+      7,
+      216,
+      1023
+    ]
+  ],
+  "label_names": [
+    "angry",
+    "sad",
+    "neutral",
+    "positive"
+  ],
+  "samples_used": 6616,
+  "samples_skipped": {},
+  "max_duration": 10.0,
+  "feature_extractor_sampling_rate": 16000
+}

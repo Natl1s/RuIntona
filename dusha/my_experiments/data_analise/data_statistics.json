@@ -1,0 +1,256 @@
+{
+  "datasets": [
+    {
+      "name": "crowd_train",
+      "role": "source",
+      "rows": 4211,
+      "hours": 5.636525121527778,
+      "dur_mean": 4.818686876632629,
+      "dur_median": 4.58,
+      "text_pct": 81.47708382806934,
+      "golden_pct": 18.522916171930657,
+      "speakers": 878,
+      "crowd": 4211,
+      "podcast": 0,
+      "emotions": {
+        "angry": 853,
+        "neutral": 2156,
+        "other": 55,
+        "positive": 714,
+        "sad": 433
+      }
+    },
+    {
+      "name": "crowd_test",
+      "role": "source",
+      "rows": 13859,
+      "hours": 18.26647189236111,
+      "dur_mean": 4.7448804973302545,
+      "dur_median": 4.5275,
+      "text_pct": 100.0,
+      "golden_pct": 1.204993145248575,
+      "speakers": 190,
+      "crowd": 13859,
+      "podcast": 0,
+      "emotions": {
+        "neutral": 8980,
+        "sad": 2157,
+        "angry": 1338,
+        "positive": 1216,
+        "other": 168
+      }
+    },
+    {
+      "name": "podcast_train",
+      "role": "source",
+      "rows": 4754,
+      "hours": 4.309077934027778,
+      "dur_mean": 3.263079630311317,
+      "dur_median": 3.2,
+      "text_pct": 0.0,
+      "golden_pct": 20.109381573411863,
+      "speakers": 2042,
+      "crowd": 0,
+      "podcast": 4754,
+      "emotions": {
+        "neutral": 4074,
+        "sad": 168,
+        "angry": 126,
+        "positive": 361,
+        "other": 25
+      }
+    },
+    {
+      "name": "podcast_test",
+      "role": "source",
+      "rows": 10662,
+      "hours": 9.452227135416667,
+      "dur_mean": 3.1915229494935287,
+      "dur_median": 3.100125,
+      "text_pct": 0.0,
+      "golden_pct": 0.9472894391296192,
+      "speakers": 637,
+      "crowd": 0,
+      "podcast": 10662,
+      "emotions": {
+        "positive": 701,
+        "neutral": 9452,
+        "other": 27,
+        "angry": 297,
+        "sad": 185
+      }
+    },
+    {
+      "name": "combine_balanced_train",
+      "role": "balanced",
+      "rows": 4205,
+      "hours": 5.117125434027778,
+      "dur_mean": 4.3808921670630205,
+      "dur_median": 4.1791875,
+      "text_pct": 75.52913198573127,
+      "golden_pct": 3.0677764565992867,
+      "speakers": 1929,
+      "crowd": 3234,
+      "podcast": 971,
+      "emotions": {
+        "neutral": 1479,
+        "sad": 1104,
+        "positive": 857,
+        "angry": 765
+      }
+    },
+    {
+      "name": "combine_balanced_test",
+      "role": "balanced",
+      "rows": 9164,
+      "hours": 11.035265555555554,
+      "dur_mean": 4.335110868616326,
+      "dur_median": 4.2,
+      "text_pct": 69.75120034919249,
+      "golden_pct": 1.5604539502400698,
+      "speakers": 679,
+      "crowd": 6392,
+      "podcast": 2772,
+      "emotions": {
+        "angry": 1635,
+        "sad": 2342,
+        "neutral": 3270,
+        "positive": 1917
+      }
+    },
+    {
+      "name": "combine_balanced_train_small",
+      "role": "small",
+      "rows": 26983,
+      "hours": 32.887684774305555,
+      "dur_mean": 4.387787317477671,
+      "dur_median": 4.2,
+      "text_pct": 74.52840677463588,
+      "golden_pct": 2.6053441055479376,
+      "speakers": 4257,
+      "crowd": 20474,
+      "podcast": 6509,
+      "emotions": {
+        "positive": 5823,
+        "neutral": 9700,
+        "sad": 6610,
+        "angry": 4850
+      }
+    },
+    {
+      "name": "combine_balanced_test_small",
+      "role": "small",
+      "rows": 2749,
+      "hours": 3.2889360069444447,
+      "dur_mean": 4.307082439068752,
+      "dur_median": 4.18,
+      "text_pct": 67.77009821753364,
+      "golden_pct": 1.5278283012004366,
+      "speakers": 500,
+      "crowd": 1863,
+      "podcast": 886,
+      "emotions": {
+        "sad": 703,
+        "neutral": 981,
+        "angry": 490,
+        "positive": 575
+      }
+    },
+    {
+      "name": "resd_train",
+      "role": "resd",
+      "rows": 916,
+      "hours": 1.533494767298123,
+      "dur_mean": 6.026835329992623,
+      "dur_median": 4.9719606717687075,
+      "text_pct": 100.0,
+      "golden_pct": 0.0,
+      "speakers": 0,
+      "crowd": 0,
+      "podcast": 0,
+      "emotions": {
+        "positive": 309,
+        "angry": 204,
+        "neutral": 183,
+        "sad": 220
+      }
+    },
+    {
+      "name": "resd_test",
+      "role": "resd",
+      "rows": 224,
+      "hours": 0.3756321608875032,
+      "dur_mean": 6.036945442834872,
+      "dur_median": 5.15384375,
+      "text_pct": 100.0,
+      "golden_pct": 0.0,
+      "speakers": 0,
+      "crowd": 0,
+      "podcast": 0,
+      "emotions": {
+        "neutral": 49,
+        "sad": 56,
+        "positive": 79,
+        "angry": 40
+      }
+    }
+  ],
+  "lmdb": [
+    {
+      "lmdb": "combine_balanced_train",
+      "lmdb_len": 68203.0,
+      "jsonl_rows": 4205.0,
+      "diff": -63998.0
+    },
+    {
+      "lmdb": "combine_balanced_test",
+      "lmdb_len": 6392.0,
+      "jsonl_rows": 9164.0,
+      "diff": 2772.0
+    },
+    {
+      "lmdb": "combine_balanced_train_small",
+      "lmdb_len": 20474.0,
+      "jsonl_rows": 26983.0,
+      "diff": 6509.0
+    },
+    {
+      "lmdb": "combine_balanced_test_small",
+      "lmdb_len": NaN,
+      "jsonl_rows": NaN,
+      "diff": NaN
+    },
+    {
+      "lmdb": "dusha_resd_train",
+      "lmdb_len": 69119.0,
+      "jsonl_rows": NaN,
+      "diff": NaN
+    },
+    {
+      "lmdb": "dusha_resd_test",
+      "lmdb_len": 6616.0,
+      "jsonl_rows": NaN,
+      "diff": NaN
+    }
+  ],
+  "train_test": {
+    "emotion_shares": {
+      "train": {
+        "angry": 18.192627824019027,
+        "sad": 26.254458977407847,
+        "neutral": 35.172413793103445,
+        "positive": 20.380499405469678
+      },
+      "test": {
+        "angry": 17.84155390659101,
+        "sad": 25.556525534701002,
+        "neutral": 35.68310781318202,
+        "positive": 20.918812745525972
+      }
+    },
+    "duration_mean": {
+      "train": 4.3808921670630205,
+      "test": 4.335110868616326
+    }
+  }
+}

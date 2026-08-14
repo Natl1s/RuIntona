@@ -1,0 +1,5 @@
+{
+    "base_path": "/path/to/dusha/data_processing/dataset",
+    "train_lmdb": "{base_path}/processed_dataset_090/aggregated_dataset/combine_balanced_train.lmdb",
+    "test_lmdb": "{base_path}/processed_dataset_090/aggregated_dataset/combine_balanced_test.lmdb"
+}

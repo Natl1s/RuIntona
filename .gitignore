@@ -1,0 +1,23 @@
+.idea/
+.opencode/
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+*.lmdb-lock
+*.pyo
+.venv/
+
+# Обученные веса (публикуются отдельно, например на HuggingFace Hub)
+# Исключение: JSON-отчёты оценки предобученных моделей (checkpoints/pretrained/*_eval_*.json) отслеживаются
+dusha/my_experiments/checkpoints/*
+!dusha/my_experiments/checkpoints/pretrained/
+dusha/my_experiments/checkpoints/pretrained/*
+!dusha/my_experiments/checkpoints/pretrained/*_eval_*.json
+
+# Локальная конфигурация с абсолютным путём к датасету
+dusha/my_experiments/data.json
+
+# Теоретические заметки и локальные данные (репозиторий о них не должен знать)
+docs/
+dusha/my_experiments/colab/

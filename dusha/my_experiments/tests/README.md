@@ -1,0 +1,29 @@
+# Тесты (`my_experiments/tests/`)
+
+Smoke-тесты моделей: запуск каждого скрипта в режиме `--mode smoke` на маленьких синтетических LMDB. Прогоняются в CI (`.github/workflows/ci.yml`: `ruff` + `pytest`).
+
+## Структура
+
+| Файл | Назначение |
+|---|---|
+| `conftest.py` | Фикстуры: tiny-датасеты audio/text/multimodal |
+| `smoke_helpers.py` | Генераторы синтетических LMDB и вспомогательные функции |
+| `test_smoke_audio.py` | Smoke-тесты аудио-моделей |
+| `test_smoke_text.py` | Smoke-тесты текстовых моделей |
+| `test_smoke_multimodal.py` | Smoke-тесты мультимодальных моделей (early fusion) |
+| `test_model_io.py` | Save/load чекпоинтов PyTorch (единый формат + legacy `state_dict`) |
+
+Покрытие `test_smoke_audio.py`: `logreg`, `svm`, `random-forest`, `cnn`, `cnn-bilstm`.
+Покрытие `test_smoke_text.py`: `tfidf-logreg`, `embeddings-logreg`, `bilstm`, `rubert`.
+Покрытие `test_smoke_multimodal.py`: `early-fusion` (требуются `torch` + `transformers`).
+
+## Запуск
+
+```bash
+poetry run pytest dusha/my_experiments/tests/ -v
+
+# локальный линт (как в CI)
+poetry run ruff check dusha/my_experiments/tests/
+```
+
+Примечание: тесты не проверяют качество моделей, а лишь гарантируют, что пайплайн (обучение/инференс) отрабатывает без ошибок end-to-end.
