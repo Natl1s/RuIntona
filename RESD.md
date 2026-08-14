@@ -33,7 +33,7 @@ RESD — **Russian Emotional Speech Dialogues** — русский датасе�
 ## Использование в этом репозитории
 
 - Оставляются только записи, чья эмоция отображается в 4 целевых класса: `anger → angry`, `happiness → positive`, `sadness → sad`, `neutral → neutral`. Остальные классы RESD (`disgust`, `fear`, `enthusiasm`) исключаются.
-- Отобранные записи объединяются с корпусом Dusha в корпус `dusha_resd`: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. См. [CORPUS.md](CORPUS.md) и `dusha/data_processing/dataset/hug_dataset/make_raw.py`.
+- Отобранные записи объединяются с корпусом Dusha в корпус `dusha_resd`: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. См. [CORPUS.md](CORPUS.md) и `ruintona/data_processing/dataset/hug_dataset/make_raw.py`.
 
 ## Использование
 

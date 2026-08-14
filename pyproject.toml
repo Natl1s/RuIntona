@@ -1,7 +1,7 @@
 [project]
-name = "dusha"
+name = "ruintona"
 version = "0.1.0"
-description = "Speech Emotion Recognition on Russian speech (Dusha dataset)"
+description = "RuIntona — Speech Emotion Recognition on Russian speech"
 authors = [
     {name = "Natlis", email = "natalja.sobjanina15@gmail.com"}
 ]
@@ -99,4 +99,4 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-pythonpath = ["dusha/my_experiments/tests"]
+pythonpath = ["ruintona/my_experiments/tests"]

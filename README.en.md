@@ -1,4 +1,4 @@
-# Dusha — Speech Emotion Recognition (Russian speech)
+# RuIntona — Speech Emotion Recognition (Russian speech)
 
 Research project on **Speech Emotion Recognition (SER) for Russian speech** built on the open-source [Dusha](./DUSHA.md) dataset. Utterances are classified into 4 emotions:
 
@@ -39,10 +39,10 @@ poetry install --with all
 
 ### 2. Configure data paths
 
-Dataset paths and the train/test LMDB locations are stored in `dusha/my_experiments/data.json` (gitignored, as it contains absolute paths).
+Dataset paths and the train/test LMDB locations are stored in `ruintona/my_experiments/data.json` (gitignored, as it contains absolute paths).
 
 ```bash
-cp dusha/my_experiments/data.json.example dusha/my_experiments/data.json
+cp ruintona/my_experiments/data.json.example ruintona/my_experiments/data.json
 # then edit "base_path" to point to your dataset location
 ```
 
@@ -50,20 +50,20 @@ cp dusha/my_experiments/data.json.example dusha/my_experiments/data.json
 
 ```bash
 # Multimodal (audio + text, late-fusion)
-poetry run python dusha/my_experiments/inference.py --model late-fusion \
-    --audio dusha/DEMO/data/001ce26c07c20eaa0d666b824c6c6924.wav \
+poetry run python ruintona/my_experiments/inference.py --model late-fusion \
+    --audio ruintona/DEMO/data/001ce26c07c20eaa0d666b824c6c6924.wav \
     --text "шестьдесят тысяч тенге сколько будет стоить"
 
 # Audio only
-poetry run python dusha/my_experiments/inference.py --model audio --audio sample.wav
+poetry run python ruintona/my_experiments/inference.py --model audio --audio sample.wav
 
 # Text only
-poetry run python dusha/my_experiments/inference.py --model text --text "я очень рад сегодня"
+poetry run python ruintona/my_experiments/inference.py --model text --text "я очень рад сегодня"
 ```
 
-> **Note.** Inference and the demo require trained model checkpoints in `dusha/my_experiments/checkpoints/`. Weights are not included in the repository (see `.gitignore`): before running the demo you need to obtain them — train the models following [`dusha/my_experiments/README.md`](./dusha/my_experiments/README.md), or download separately published weights.
+> **Note.** Inference and the demo require trained model checkpoints in `ruintona/my_experiments/checkpoints/`. Weights are not included in the repository (see `.gitignore`): before running the demo you need to obtain them — train the models following [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md), or download separately published weights.
 
-Interactive version — the notebook [`dusha/DEMO/demo.ipynb`](./dusha/DEMO/demo.ipynb).
+Interactive version — the notebook [`ruintona/DEMO/demo.ipynb`](./ruintona/DEMO/demo.ipynb).
 
 ## Repository structure
 
@@ -75,7 +75,7 @@ dusha_new/
 ├── LICENSE                    # License of the project's own code (MIT)
 ├── license/                   # Dusha/Golos dataset license (EN/RU)
 ├── pyproject.toml             # Poetry project and dependencies
-└── dusha/
+└── ruintona/
     ├── data_processing/       # Raw data processing pipeline (adapted from Golos/Dusha)
     ├── configs/               # Experiment JSON configs
     ├── DEMO/                  # Demo inference notebook
@@ -99,23 +99,23 @@ dusha_new/
 | Dusha dataset & attribution | [`DUSHA.md`](./DUSHA.md) |
 | RESD dataset & attribution | [`RESD.md`](./RESD.md) |
 | Data corpora & building rules | [`CORPUS.md`](./CORPUS.md) |
-| Raw data processing | [`dusha/data_processing/README.md`](./dusha/data_processing/README.md) |
-| Experiments (overview) | [`dusha/my_experiments/README.md`](./dusha/my_experiments/README.md) |
-| Experiment configs | [`dusha/configs/README.md`](./dusha/configs/README.md) |
-| Utilities | [`dusha/my_experiments/utils/README.md`](./dusha/my_experiments/utils/README.md) |
-| Text models | [`dusha/my_experiments/text_models/README.md`](./dusha/my_experiments/text_models/README.md) |
-| Audio models | [`dusha/my_experiments/audio_models/README.md`](./dusha/my_experiments/audio_models/README.md) |
-| Multimodal models | [`dusha/my_experiments/multimodal/README.md`](./dusha/my_experiments/multimodal/README.md) |
-| Data analysis | [`dusha/my_experiments/data_analise/README.md`](./dusha/my_experiments/data_analise/README.md) |
-| Model analysis | [`dusha/my_experiments/model_analise/README.md`](./dusha/my_experiments/model_analise/README.md) |
-| Demo | [`dusha/DEMO/README.md`](./dusha/DEMO/README.md) |
-| Tests | [`dusha/my_experiments/tests/README.md`](./dusha/my_experiments/tests/README.md) |
+| Raw data processing | [`ruintona/data_processing/README.md`](./ruintona/data_processing/README.md) |
+| Experiments (overview) | [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) |
+| Experiment configs | [`ruintona/configs/README.md`](./ruintona/configs/README.md) |
+| Utilities | [`ruintona/my_experiments/utils/README.md`](./ruintona/my_experiments/utils/README.md) |
+| Text models | [`ruintona/my_experiments/text_models/README.md`](./ruintona/my_experiments/text_models/README.md) |
+| Audio models | [`ruintona/my_experiments/audio_models/README.md`](./ruintona/my_experiments/audio_models/README.md) |
+| Multimodal models | [`ruintona/my_experiments/multimodal/README.md`](./ruintona/my_experiments/multimodal/README.md) |
+| Data analysis | [`ruintona/my_experiments/data_analise/README.md`](./ruintona/my_experiments/data_analise/README.md) |
+| Model analysis | [`ruintona/my_experiments/model_analise/README.md`](./ruintona/my_experiments/model_analise/README.md) |
+| Demo | [`ruintona/DEMO/README.md`](./ruintona/DEMO/README.md) |
+| Tests | [`ruintona/my_experiments/tests/README.md`](./ruintona/my_experiments/tests/README.md) |
 
 ## Experiment results
 
 ### Ready-made solutions (pretrained, no tuning)
 
-Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.md`](dusha/my_experiments/model_analise/README.md), results — `checkpoints/pretrained/*_eval_*.json`.
+Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.md`](ruintona/my_experiments/model_analise/README.md), results — `checkpoints/pretrained/*_eval_*.json`.
 
 | Model | Train | Test | Test Acc | F1-macro |
 |---|---|---|---|---|
@@ -161,8 +161,8 @@ Model-to-corpus mapping and corpus composition — see [`CORPUS.md`](./CORPUS.md
 ## Tests and CI
 
 ```bash
-poetry run pytest dusha/my_experiments/tests/ -v
-poetry run ruff check dusha/my_experiments/tests/
+poetry run pytest ruintona/my_experiments/tests/ -v
+poetry run ruff check ruintona/my_experiments/tests/
 ```
 
 GitHub Actions CI is configured (`.github/workflows/ci.yml`): ruff lint + smoke tests; `.github/workflows/semgrep.yml` — Semgrep security scanning.

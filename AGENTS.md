@@ -1,4 +1,4 @@
-# Dusha Repository - Agent Instructions
+# RuIntona Repository - Agent Instructions
 
 ## Project Overview
 
@@ -9,7 +9,7 @@ Speech emotion recognition (SER) research project with two datasets:
 ## Project Structure
 
 ```
-dusha/
+ruintona/
 ├── data_processing/    # Raw data processing pipeline
 └── my_experiments/     # Custom experiments (text, audio, multimodal, data analysis)
 ```
@@ -18,10 +18,10 @@ dusha/
 
 ### Data Path
 
-The dataset paths are configured in `dusha/my_experiments/data.json` (copy from `dusha/my_experiments/data.json.example`):
+The dataset paths are configured in `ruintona/my_experiments/data.json` (copy from `ruintona/my_experiments/data.json.example`):
 ```json
 {
-    "base_path": "/path/to/dusha/data_processing/dataset",
+    "base_path": "/path/to/ruintona/data_processing/dataset",
     "train_lmdb": "{base_path}/processed_dataset_090/aggregated_dataset/combine_balanced_train.lmdb",
     "test_lmdb": "{base_path}/processed_dataset_090/aggregated_dataset/combine_balanced_test.lmdb"
 }
@@ -45,25 +45,25 @@ pip install lmdb gensim transformers
 
 ```bash
 # Process raw dataset (requires crowd.tar, podcast.tar in DATASET_PATH)
-poetry run python dusha/data_processing/processing.py -dataset_path /path/to/dataset
+poetry run python ruintona/data_processing/processing.py -dataset_path /path/to/dataset
 
 # Build balanced JSONL datasets for custom experiments
-poetry run python dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/build_balanced_aggregated_jsonl.py
+poetry run python ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/build_balanced_aggregated_jsonl.py
 ```
 
-### Custom Experiments (dusha/my_experiments/)
+### Custom Experiments (ruintona/my_experiments/)
 
 ```bash
 # Text models
-poetry run python dusha/my_experiments/text_models/baseline/TF-IDF_LogReg.py --mode train
-poetry run python dusha/my_experiments/text_models/BiLSTM/BiLSTM.py --mode train
+poetry run python ruintona/my_experiments/text_models/baseline/TF-IDF_LogReg.py --mode train
+poetry run python ruintona/my_experiments/text_models/BiLSTM/BiLSTM.py --mode train
 
 # Audio models
-poetry run python dusha/my_experiments/audio_models/baseline/logistic_regression.py --mode train
-poetry run python dusha/my_experiments/audio_models/CNN/CNN.py --mode train
+poetry run python ruintona/my_experiments/audio_models/baseline/logistic_regression.py --mode train
+poetry run python ruintona/my_experiments/audio_models/CNN/CNN.py --mode train
 
 # Multimodal models
-poetry run python dusha/my_experiments/multimodal/late_fusion/Late_Fusion_CNN_BiLSTM_RuBERT.py --mode train
+poetry run python ruintona/my_experiments/multimodal/late_fusion/Late_Fusion_CNN_BiLSTM_RuBERT.py --mode train
 ```
 
 ## Architecture Notes
@@ -83,7 +83,7 @@ Two LMDB corpora are built from `aggregated_dataset` (full rules in `CORPUS.md`)
 
 ### Data Formats
 
-- **Custom experiments**: LMDB databases (see `dusha/my_experiments/utils/lmdb_utils.py`)
+- **Custom experiments**: LMDB databases (see `ruintona/my_experiments/utils/lmdb_utils.py`)
 - **Data analysis**: JSONL manifests + CSV files
 
 ### LMDB Structure
@@ -102,15 +102,15 @@ LMDB records contain:
 
 ## Testing
 
-Smoke tests for the model scripts run in `--mode smoke` on tiny synthetic LMDBs (see `dusha/my_experiments/tests/README.md`):
+Smoke tests for the model scripts run in `--mode smoke` on tiny synthetic LMDBs (see `ruintona/my_experiments/tests/README.md`):
 
 ```bash
 poetry install --with dev --with ml   # pytest/ruff + torch models
-poetry run pytest dusha/my_experiments/tests/ -v
+poetry run pytest ruintona/my_experiments/tests/ -v
 ```
 
 Notes:
-- The package must be installed (`poetry install`) so `dusha` is importable from anywhere.
+- The package must be installed (`poetry install`) so `ruintona` is importable from anywhere.
 - `config_utils` loads `data.json` tolerantly: missing `data.json` does NOT break import — scripts that get explicit `--train-data-path`/`--test-data-path` run fine without it. A clear error is raised only when a path is actually needed (`resolve_data_paths`/`get_dataset_path`).
 - Tests requiring `cc.ru.300.bin` (embeddings-logreg, bilstm) or missing optional deps are skipped, not failed.
 
@@ -123,16 +123,16 @@ Two levels; level 0 needs no dataset.
 **Level 0 — no real data (pipeline check):**
 ```bash
 poetry install --with all        # or: --with dev --with ml (torch models)
-poetry run pytest dusha/my_experiments/tests/ -v   # each model in --mode smoke
+poetry run pytest ruintona/my_experiments/tests/ -v   # each model in --mode smoke
 ```
 Works without `data.json`. Heavy downloads to expect: torch (~2GB), RuBERT backbone (~700MB, downloaded by rubert smoke test). FastText `cc.ru.300.bin` (2.3GB) is NOT downloaded automatically — embedding tests will skip.
 
 **Level 1 — real data (`data.json` + real LMDBs):**
-- Create `dusha/my_experiments/data.json` from `data.json.example` with a correct `base_path`.
+- Create `ruintona/my_experiments/data.json` from `data.json.example` with a correct `base_path`.
 - Run one representative per family with `--mode auto`: `audio_models/baseline/logistic_regression.py`, `audio_models/CNN/CNN.py` (needs `--with ml`), `text_models/baseline/TF-IDF_LogReg.py`.
 - Heavy/optional (skip in a quick check): `openSmile_XGBoost.py` (needs waveform LMDB + `--with audio-extra`), wav2vec/HuBERT (GPU + downloads), multimodal `Late_Fusion_CNN_BiLSTM_RuBERT.py` (needs trained checkpoints, use `--mode load`), `data_processing/processing.py` (needs raw `crowd.tar`/`podcast.tar`).
 
 ## CI/CD
 
-- `.github/workflows/ci.yml`: lint (`ruff check dusha/my_experiments/tests/`) + `pytest dusha/my_experiments/tests/` on push/PR to `main`/`master`. The test job installs `--with dev --with ml` so torch model smoke tests also run. `data.json` is NOT created in CI — tolerant config loading keeps tests green on a fresh checkout.
+- `.github/workflows/ci.yml`: lint (`ruff check ruintona/my_experiments/tests/`) + `pytest ruintona/my_experiments/tests/` on push/PR to `main`/`master`. The test job installs `--with dev --with ml` so torch model smoke tests also run. `data.json` is NOT created in CI — tolerant config loading keeps tests green on a fresh checkout.
 - `.github/workflows/semgrep.yml`: Semgrep security scanning.

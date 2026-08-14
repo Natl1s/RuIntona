@@ -1,0 +1,19 @@
+{
+    "_description": "Early Fusion Baseline — объединение текстовых и аудио признаков на ранней стадии",
+    "_script": "ruintona/my_experiments/multimodal/early_fusion/Early_Fusion_Baseline.py",
+
+    "projection_dim": 256,
+    "dropout": 0.3,
+    "classifier_layers": [256, 128],
+    "audio_lstm_hidden_size": 128,
+    "audio_lstm_layers": 2,
+    "audio_lstm_dropout": 0.2,
+    "bidirectional": true,
+    "grad_clip_norm": 1.0,
+    "batch_size": 32,
+    "val_size": 0.2,
+    "epochs": 20,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "seed": 42
+}

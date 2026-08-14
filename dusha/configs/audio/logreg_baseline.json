@@ -1,9 +1,0 @@
-{
-    "_description": "Logistic Regression baseline для классификации эмоций из аудио (-mfcc фичи)",
-    "_script": "dusha/my_experiments/audio_models/baseline/logistic_regression.py",
-
-    "solver": "lbfgs",
-    "max_iter": 1000,
-    "random_state": 42,
-    "class_weight": null
-}

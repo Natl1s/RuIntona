@@ -1,0 +1,25 @@
+{
+    "_description": "Wav2Vec2 XLS-R 300M + Self-Attention для классификации эмоций из аудио",
+    "_script": "ruintona/my_experiments/audio_models/transformers/wav2vec_self_attention.py",
+
+    "pretrained_name": "facebook/wav2vec2-xls-r-300m",
+    "pooling_type": "mean",
+    "head_dropout": 0.1,
+    "unfreeze_last_n": 4,
+    "epochs": 18,
+    "batch_size": 4,
+    "gradient_accumulation_steps": 8,
+    "lr_encoder": 5e-6,
+    "lr_head": 1e-5,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "min_crop_sec": 4.0,
+    "max_crop_sec": 6.0,
+    "eval_every_n_epochs": 2,
+    "num_workers": 2,
+    "log_every_n_steps": 20,
+    "loss_ma_window": 50,
+    "fp16": true,
+    "grad_clip": 1.0,
+    "seed": 42
+}

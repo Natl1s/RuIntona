@@ -5,7 +5,7 @@
 - **Dusha** (Сбер / Salute Developers) — см. [DUSHA.md](DUSHA.md)
 - **RESD** (Aniemore, Hugging Face) — см. [RESD.md](RESD.md)
 
-Все артефакты находятся в `dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
+Все артефакты находятся в `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
 ## Корпусы
 
@@ -39,7 +39,7 @@ RESD parquet (Aniemore/resd_annotated)
 
 ### Шаг 0. Агрегированные манифесты (только Dusha)
 
-`dusha/data_processing/processing.py` считает mel-спектрограммы (`features/*.npy`), агрегирует разметку **Dawid-Skene** (crowdkit, порог 0.9 → `processed_dataset_090`) и формирует агрегированные манифесты `crowd_{train,test}.jsonl` / `podcast_{train,test}.jsonl` в `aggregated_dataset/` (поля: `hash_id`, `audio_path`, `duration`, `emotion`, `golden_emo`, `speaker_text`, `speaker_emo`, `source_id`).
+`ruintona/data_processing/processing.py` считает mel-спектрограммы (`features/*.npy`), агрегирует разметку **Dawid-Skene** (crowdkit, порог 0.9 → `processed_dataset_090`) и формирует агрегированные манифесты `crowd_{train,test}.jsonl` / `podcast_{train,test}.jsonl` в `aggregated_dataset/` (поля: `hash_id`, `audio_path`, `duration`, `emotion`, `golden_emo`, `speaker_text`, `speaker_emo`, `source_id`).
 
 ### Шаг 1. Балансировка → `combine_balanced`
 
@@ -106,15 +106,15 @@ RESD parquet (Aniemore/resd_annotated)
 | Late fusion HuBERT + RuBERT (α=0.5) | `combine_balanced` |
 | Foundation-модели (Whisper, WavLM-BERT, HuBERT) | `combine_balanced` |
 
-Подробное описание и источники foundation-моделей (Whisper, WavLM-BERT, HuBERT) — [`model_analise/README.md`](./dusha/my_experiments/model_analise/README.md).
+Подробное описание и источники foundation-моделей (Whisper, WavLM-BERT, HuBERT) — [`model_analise/README.md`](./ruintona/my_experiments/model_analise/README.md).
 
 ## Известные особенности
 
-- **Расхождение JSONL ↔ LMDB.** Из-за фильтра podcast в `lmdb_convert.py` длины LMDB меньше числа строк JSONL. Например, в `combine_balanced_train.jsonl` 89943 строк, а в LMDB — 68203 записи (см. [`make_data_scripts/README.md`](dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md) — фильтр podcast и размеры корпусов).
+- **Расхождение JSONL ↔ LMDB.** Из-за фильтра podcast в `lmdb_convert.py` длины LMDB меньше числа строк JSONL. Например, в `combine_balanced_train.jsonl` 89943 строк, а в LMDB — 68203 записи (см. [`make_data_scripts/README.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md) — фильтр podcast и размеры корпусов).
 - **Частота дискретизации RESD неоднородна** (16 кГц / 44.1 кГц) — `lmdb_convert.py` ресемплит всё в 16 кГц.
 
 ## Ссылки
 
-- Скрипты сборки: [`make_data_scripts/README.md`](dusha/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md)
-- HuggingFace-датасеты в `dusha/data_processing/dataset/hug_dataset/`: `make_raw.py`, `dataset_stats.py`, `add_missing_spectrograms.py`
-- Пайплайн обработки: [`data_processing/README.md`](dusha/data_processing/README.md)
+- Скрипты сборки: [`make_data_scripts/README.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md)
+- HuggingFace-датасеты в `ruintona/data_processing/dataset/hug_dataset/`: `make_raw.py`, `dataset_stats.py`, `add_missing_spectrograms.py`
+- Пайплайн обработки: [`data_processing/README.md`](ruintona/data_processing/README.md)

@@ -16,7 +16,7 @@ jobs:
           python-version: "3.12"
       - run: pip install poetry
       - run: poetry install --with dev
-      - run: poetry run ruff check dusha/my_experiments/tests/
+      - run: poetry run ruff check ruintona/my_experiments/tests/
 
   test:
     runs-on: ubuntu-latest
@@ -27,4 +27,4 @@ jobs:
           python-version: "3.12"
       - run: pip install poetry
       - run: poetry install --with dev --with ml --with tuning
-      - run: poetry run pytest dusha/my_experiments/tests/ -v
+      - run: poetry run pytest ruintona/my_experiments/tests/ -v

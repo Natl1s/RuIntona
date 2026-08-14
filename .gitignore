@@ -10,14 +10,14 @@ __pycache__/
 
 # Обученные веса (публикуются отдельно, например на HuggingFace Hub)
 # Исключение: JSON-отчёты оценки предобученных моделей (checkpoints/pretrained/*_eval_*.json) отслеживаются
-dusha/my_experiments/checkpoints/*
-!dusha/my_experiments/checkpoints/pretrained/
-dusha/my_experiments/checkpoints/pretrained/*
-!dusha/my_experiments/checkpoints/pretrained/*_eval_*.json
+ruintona/my_experiments/checkpoints/*
+!ruintona/my_experiments/checkpoints/pretrained/
+ruintona/my_experiments/checkpoints/pretrained/*
+!ruintona/my_experiments/checkpoints/pretrained/*_eval_*.json
 
 # Локальная конфигурация с абсолютным путём к датасету
-dusha/my_experiments/data.json
+ruintona/my_experiments/data.json
 
 # Теоретические заметки и локальные данные (репозиторий о них не должен знать)
 docs/
-dusha/my_experiments/colab/
+ruintona/my_experiments/colab/

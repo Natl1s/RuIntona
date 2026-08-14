@@ -35,7 +35,7 @@ The dataset consists of two subsets:
 
 - The data is annotated on a crowdsourcing platform; each recording is labeled by several annotators.
 - Final labels are aggregated with the **Dawid-Skene** mechanism (accounts for annotator competence).
-- This repository uses the confidence threshold **0.9** → processing output is stored in `processed_dataset_090` (see [`dusha/data_processing/README.md`](dusha/data_processing/README.md)).
+- This repository uses the confidence threshold **0.9** → processing output is stored in `processed_dataset_090` (see [`ruintona/data_processing/README.md`](ruintona/data_processing/README.md)).
 
 ## Downloads
 
@@ -57,9 +57,9 @@ Raw data processing pipeline: mel-spectrograms (`features/*.npy`), Dawid-Skene l
 This repository contains:
 
 - **Adapted Material** from the original [Salute Developers — Golos/Dusha](https://github.com/salute-developers/golos) project:
-  - the `dusha/data_processing/` pipeline (raw data processing, feature extraction, Dawid-Skene label aggregation),
+  - the `ruintona/data_processing/` pipeline (raw data processing, feature extraction, Dawid-Skene label aggregation),
   - the dataset structure and any derived dataset artifacts (features, manifests, LMDB databases).
-- **Original work** by the author of this repository: everything else under `dusha/my_experiments/`, `dusha/DEMO/`, `dusha/configs/` — licensed separately (see [LICENSE](./LICENSE)).
+- **Original work** by the author of this repository: everything else under `ruintona/my_experiments/`, `ruintona/DEMO/`, `ruintona/configs/` — licensed separately (see [LICENSE](./LICENSE)).
 
 The dataset and the adapted code are provided under the Dusha/Golos license (see [English Version](./license/en_us.pdf) / [Russian Version](./license/ru.pdf)): **with attribution and conditions reserved** (Share-Alike). When distributing the dataset itself or derived data artifacts, keep the attribution above and the license text.
 

@@ -1,0 +1,12 @@
+{
+    "_description": "FastText Embeddings + Logistic Regression для классификации эмоций по тексту",
+    "_script": "ruintona/my_experiments/text_models/baseline/Embeddings_LogReg.py",
+
+    "embeddings_path": null,
+    "logreg": {
+        "solver": "lbfgs",
+        "max_iter": 1000,
+        "random_state": 42,
+        "class_weight": "balanced"
+    }
+}

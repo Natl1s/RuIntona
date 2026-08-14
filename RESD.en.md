@@ -33,7 +33,7 @@ RESD — **Russian Emotional Speech Dialogues** — is a Russian speech emotion 
 ## Use in this repository
 
 - Only rows whose emotion maps to the four target classes are kept: `anger → angry`, `happiness → positive`, `sadness → sad`, `neutral → neutral`. Other RESD classes (`disgust`, `fear`, `enthusiasm`) are excluded.
-- The selected rows are merged into the Dusha corpus to form the `dusha_resd` corpus: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. See [CORPUS.md](CORPUS.md) and `dusha/data_processing/dataset/hug_dataset/make_raw.py`.
+- The selected rows are merged into the Dusha corpus to form the `dusha_resd` corpus: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. See [CORPUS.md](CORPUS.md) and `ruintona/data_processing/dataset/hug_dataset/make_raw.py`.
 
 ## Usage
 
