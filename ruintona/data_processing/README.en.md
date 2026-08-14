@@ -2,6 +2,11 @@
 
 Pipeline for the raw Dusha dataset: acoustic feature extraction, label aggregation (Dawid-Skene) and manifest building for experiments.
 
+> **License and attribution.** This code and the Dusha dataset itself are adapted
+> from the [Salute Developers — Golos](https://github.com/salute-developers/golos)
+> project and are provided under the Dusha/Golos license (attribution + share-alike).
+> License text — [`license/`](../../license/) (EN/RU); description and attribution — [`DUSHA.md`](../../DUSHA.md).
+
 ```
 raw (crowd.tar / podcast.tar) → processing.py → processed_dataset_0XX/
                                                      ├── features/*.npy

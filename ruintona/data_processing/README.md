@@ -2,6 +2,11 @@
 
 Пайплайн первичной обработки сырого датасета Dusha: извлечение акустических признаков, агрегация разметки (Dawid-Skene) и формирование манифестов для экспериментов.
 
+> **Лицензия и атрибуция.** Этот код и сам датасет Dusha адаптированы из проекта
+> [Salute Developers — Golos](https://github.com/salute-developers/golos) и
+> предоставляются по лицензии Dusha/Golos (attribution + share-alike). Текст
+> лицензии — [`license/`](../../license/) (RU/EN), описание и атрибуция — [`DUSHA.md`](../../DUSHA.md).
+
 ```
 raw (crowd.tar / podcast.tar) → processing.py → processed_dataset_0XX/
                                                      ├── features/*.npy

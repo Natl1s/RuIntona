@@ -1,0 +1,35 @@
+# NOTICE — Third-party licenses
+
+This repository contains code and data under several licenses.
+The list below describes which license applies to which part of the project.
+See the referenced files for the full license texts and attribution.
+
+| Part | License | Reference |
+|---|---|---|
+| Original code of this repository: `ruintona/my_experiments/`, `ruintona/DEMO/`, `ruintona/configs/` | MIT | [`LICENSE`](./LICENSE) |
+| Dusha dataset and adapted `data_processing/` pipeline (from Salute Developers — Golos) | Dusha/Golos (attribution + share-alike) | [`license/en_us.pdf`](./license/en_us.pdf), [`license/ru.pdf`](./license/ru.pdf), [`DUSHA.md`](./DUSHA.md) |
+| RESD dataset (Aniemore / Russian Emotional Speech Dialogues) | MIT | [`RESD.md`](./RESD.md) |
+| Corpus build rules (`combine_balanced`, `dusha_resd`) | See Dusha/Golos and RESD licenses above | [`CORPUS.md`](./CORPUS.md) |
+
+## Third-party pretrained models and data
+
+Pretrained models and word vectors are not vendored in the repository; they are
+downloaded at runtime (`ruintona/my_experiments/utils/pretrained.py`) or loaded
+from Hugging Face Hub by the experiment/evaluation scripts. Their licenses are:
+
+| Component | License | Source |
+|---|---|---|
+| FastText `cc.ru.300.bin` word vectors | CC BY-SA 3.0 | <https://fasttext.cc/docs/en/crawl-vectors.html> |
+| RuBERT (`rubert-base-cased`, original by DeepPavlov) | Apache-2.0 | <https://huggingface.co/DeepPavlov/rubert-base-cased> |
+| wav2vec2 XLS-R 300M (Facebook/Meta) | Apache-2.0 | <https://huggingface.co/facebook/wav2vec2-xls-r-300m> |
+| HuBERT-large SER fine-tune on Dusha (xbgoose) | Apache-2.0 | <https://huggingface.co/xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned> |
+| Whisper large-v3 SER fine-tune (firdhokk) | Apache-2.0 (base `openai/whisper-large-v3` is MIT) | <https://huggingface.co/firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3> |
+| WavLM-BERT fusion SER on RESD (Aniemore) | MIT | <https://huggingface.co/Aniemore/wavlm-bert-fusion-s-emotion-russian-resd> |
+
+Keep the attribution and license texts of these components when redistributing
+them or their derivatives (see the source links above).
+
+The Python package metadata (see `pyproject.toml`) declares the MIT license,
+which applies to the original code authored in this repository. The MIT license
+does not supersede the Dusha/Golos share-alike conditions that govern the
+dataset and the adapted `data_processing/` code.

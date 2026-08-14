@@ -74,6 +74,7 @@ dusha_new/
 ├── CORPUS.md                  # Корпусы данных и правила их сборки (Dusha + RESD)
 ├── LICENSE                    # Лицензия собственного кода (MIT)
 ├── license/                   # Лицензия датасета Dusha/Golos (RU/EN)
+├── NOTICE                     # Сводка лицензий третьих сторон (mixed licensing)
 ├── pyproject.toml             # Poetry-проект и зависимости
 └── ruintona/
     ├── data_processing/       # Пайплайн обработки сырых данных (адаптирован из Golos/Dusha)
@@ -173,3 +174,4 @@ poetry run ruff check ruintona/my_experiments/tests/
 - **Лицензия датасета Dusha и кода `data_processing/`**: Dusha/Golos (attribution + share-alike), текст в [`license/`](./license/). Этот код и датасет адаптированы из проекта [Salute Developers — Golos](https://github.com/salute-developers/golos).
 - **Датасет RESD**: лицензия MIT, атрибуция в [`RESD.md`](./RESD.md).
 - **Собственный код проекта** (`my_experiments/`, `DEMO/`, `configs/`): MIT — [`LICENSE`](./LICENSE).
+- **Сводная таблица лицензий всех частей проекта** — [`NOTICE`](./NOTICE).

@@ -1,3 +1,5 @@
+# Adapted from Salute Developers — Golos (Dusha): https://github.com/salute-developers/golos
+# License: Dusha/Golos (attribution + share-alike) — see license/ and DUSHA.md
 from dataclasses import dataclass
 from typing import Any
 

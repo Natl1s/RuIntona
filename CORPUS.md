@@ -7,6 +7,15 @@
 
 Все артефакты находятся в `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
+## Лицензия
+
+Корпусы наследуют лицензии исходных датасетов:
+
+- **`combine_balanced`** / **`combine_balanced_small`** (только Dusha): лицензия Dusha/Golos (attribution + share-alike) — текст в [`license/`](./license/), описание в [`DUSHA.md`](DUSHA.md).
+- **`dusha_resd`** (Dusha + RESD): Dusha/Golos для части Dusha и MIT для части RESD (см. [`RESD.md`](RESD.md)).
+
+При распространении корпусов и производных артефактов сохраняйте атрибуцию и тексты лицензий обеих частей.
+
 ## Корпусы
 
 | Корпус | Состав | Train | Test | Используется |

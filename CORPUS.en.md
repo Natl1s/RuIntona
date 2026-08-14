@@ -7,6 +7,15 @@ This repository trains and evaluates models on corpora built from two source dat
 
 All artifacts live under `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
+## License
+
+The corpora inherit the licenses of their source datasets:
+
+- **`combine_balanced`** / **`combine_balanced_small`** (Dusha only): Dusha/Golos license (attribution + share-alike) — text in [`license/`](./license/), description in [`DUSHA.md`](DUSHA.md).
+- **`dusha_resd`** (Dusha + RESD): Dusha/Golos for the Dusha part and MIT for the RESD part (see [`RESD.md`](RESD.md)).
+
+When redistributing the corpora or derived artifacts, keep the attribution and license texts of both parts.
+
 ## Corpora
 
 | Corpus | Composition | Train | Test | Used by |

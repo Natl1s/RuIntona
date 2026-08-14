@@ -6,6 +6,7 @@ authors = [
     {name = "Natlis", email = "natalja.sobjanina15@gmail.com"}
 ]
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.12,<3.13"
 
 # ── Core: базовые пакеты, необходимые для всех экспериментов ──

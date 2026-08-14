@@ -74,6 +74,7 @@ dusha_new/
 ├── CORPUS.md                  # Data corpora and their building rules (Dusha + RESD)
 ├── LICENSE                    # License of the project's own code (MIT)
 ├── license/                   # Dusha/Golos dataset license (EN/RU)
+├── NOTICE                     # Third-party licenses summary (mixed licensing)
 ├── pyproject.toml             # Poetry project and dependencies
 └── ruintona/
     ├── data_processing/       # Raw data processing pipeline (adapted from Golos/Dusha)
@@ -173,3 +174,4 @@ GitHub Actions CI is configured (`.github/workflows/ci.yml`): ruff lint + smoke 
 - **Dusha dataset license and `data_processing/` code**: Dusha/Golos (attribution + share-alike), license text in [`license/`](./license/). This code and the dataset are adapted from the [Salute Developers — Golos](https://github.com/salute-developers/golos) project.
 - **RESD dataset**: MIT license, attribution in [`RESD.md`](./RESD.md).
 - **Project's own code** (`my_experiments/`, `DEMO/`, `configs/`): MIT — [`LICENSE`](./LICENSE).
+- **Summary table of licenses for all project parts** — [`NOTICE`](./NOTICE).
