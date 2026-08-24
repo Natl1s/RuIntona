@@ -71,6 +71,7 @@ Interactive version — the notebook [`ruintona/DEMO/demo.ipynb`](./ruintona/DEM
 dusha_new/
 ├── DUSHA.md                   # Dusha dataset description and attribution (Salute Developers)
 ├── RESD.md                    # RESD dataset description and attribution (Aniemore, Hugging Face)
+├── SOURCES.md                 # Sources and licenses of third-party models and datasets
 ├── CORPUS.md                  # Data corpora and their building rules (Dusha + RESD)
 ├── LICENSE                    # License of the project's own code (MIT)
 ├── license/                   # Dusha/Golos dataset license (EN/RU)
@@ -99,6 +100,7 @@ dusha_new/
 | Project | [`README.md`](./README.md) |
 | Dusha dataset & attribution | [`DUSHA.md`](./DUSHA.md) |
 | RESD dataset & attribution | [`RESD.md`](./RESD.md) |
+| Third-party model & dataset sources | [`SOURCES.en.md`](./SOURCES.en.md) |
 | Data corpora & building rules | [`CORPUS.md`](./CORPUS.md) |
 | Raw data processing | [`ruintona/data_processing/README.md`](./ruintona/data_processing/README.md) |
 | Experiments (overview) | [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) |

@@ -2,6 +2,8 @@
 
 Shared modules used by all experiments: configuration, LMDB access, metrics, model save/load, model registry, pretrained models, PyTorch/sklearn helpers, CLI.
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../SOURCES.en.md).
+
 | Module | Purpose | Key functions |
 |---|---|---|
 | `config_utils.py` | Central configuration: `data.json`, constants, checkpoint paths, JSON config loading | `EMO2LABEL`, `TARGET_NAMES`, `DATASET_PATH`, `TRAIN_DATA_PATH`, `TEST_DATA_PATH`, `CHECKPOINTS_DIR`, `resolve_model_path()`, `checkpoints_dir_for()`, `load_experiment_config()`, `apply_config_to_args()`, `add_config_arg()`, `add_data_path_args()`, `resolve_data_paths()`, `find_pretrained_model()` |

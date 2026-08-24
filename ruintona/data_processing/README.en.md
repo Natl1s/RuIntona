@@ -2,6 +2,8 @@
 
 Pipeline for the raw Dusha dataset: acoustic feature extraction, label aggregation (Dawid-Skene) and manifest building for experiments.
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../SOURCES.en.md).
+
 > **License and attribution.** This code and the Dusha dataset itself are adapted
 > from the [Salute Developers — Golos](https://github.com/salute-developers/golos)
 > project and are provided under the Dusha/Golos license (attribution + share-alike).

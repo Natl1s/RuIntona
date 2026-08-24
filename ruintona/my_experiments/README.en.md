@@ -2,6 +2,8 @@
 
 Speech emotion recognition experiments: **text**, **audio** and **multimodal** models, plus inference, data analysis and smoke tests.
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../SOURCES.en.md).
+
 ## Table of contents
 
 - [Data](#data)

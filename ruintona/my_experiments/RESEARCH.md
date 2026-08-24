@@ -4,6 +4,8 @@
 > **какие готовые решения** были проверены, а также **гипотезу, эксперименты и результаты**.
 > Технические детали моделей и корпусов — в [README.md](README.md), [CORPUS.md](../../CORPUS.md),
 > [DUSHA.md](../../DUSHA.md), [RESD.md](../../RESD.md) и ноутбуках [`model_analise/`](model_analise/).
+>
+> Источники и лицензии сторонних предобученных моделей и датасетов — [`SOURCES.md`](../../SOURCES.md).
 
 ## 1. Мотивация и постановка проблемы
 
@@ -230,6 +232,6 @@ F1-macro нигде не пересекают ноль (все приросты 
 - Текстовые модели: [`text_models/README.md`](text_models/README.md)
 - Мультимодальные модели: [`multimodal/README.md`](multimodal/README.md)
 - Анализ результатов и предобученные модели: [`model_analise/README.md`](model_analise/README.md)
-- Предобученные модели: [xbgoose hubert-large dusha](https://huggingface.co/xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned),
-  [firdhokk whisper SER](https://huggingface.co/firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3),
-  [Aniemore wavlm-bert fusion](https://huggingface.co/Aniemore/wavlm-bert-fusion-s-emotion-russian-resd)
+- Предобученные модели: `xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned`,
+  `firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3`,
+  `Aniemore/wavlm-bert-fusion-s-emotion-russian-resd` — источники и лицензии: [`SOURCES.md`](../../SOURCES.md)

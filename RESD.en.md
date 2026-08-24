@@ -4,6 +4,8 @@
 
 RESD — **Russian Emotional Speech Dialogues** — is a Russian speech emotion recognition dataset published by the [Aniemore](https://huggingface.co/Aniemore) team. In this repository the `resd_annotated` version is used as a secondary source to augment the [Dusha](DUSHA.md) corpus (see [CORPUS.md](CORPUS.md)).
 
+> Consolidated sources of all third-party components (models + datasets) — [`SOURCES.en.md`](./SOURCES.en.md).
+
 ## Description
 
 - Recorded in a studio by **20 voice actors**.

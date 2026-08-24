@@ -1,5 +1,7 @@
 # Experiment configs (`ruintona/configs/`)
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../SOURCES.en.md).
+
 JSON hyperparameter configs for all models. Loaded via `--config PATH`:
 
 ```bash

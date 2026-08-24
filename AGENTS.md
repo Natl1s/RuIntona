@@ -81,6 +81,8 @@ Two LMDB corpora are built from `aggregated_dataset` (full rules in `CORPUS.md`)
 - `combine_balanced` — Dusha only (balanced Dusha + Golos samples).
 - `dusha_resd` — combined corpus: `combine_balanced` + RESD (`Aniemore/resd_annotated` from Hugging Face, mapped `happiness→positive`, `anger→angry`, `sadness→sad`, `neutral→neutral`). **Most experiments (text models, audio baselines LogReg/RandomForest/SVM/openSMILE+XGBoost, multimodal baselines, foundation-model eval) are trained/evaluated on `dusha_resd`.** Exceptions: CNN/CNN-BiLSTM and wav2vec2 use `combine_balanced`/`combine_balanced_small`; multimodal CNN-BiLSTM/HuBERT backbones are trained on `combine_balanced` but evaluated on `dusha_resd_test` (see `model_analise/multimodal_models_analise.ipynb`).
 
+Sources and licenses of third-party pretrained models and datasets — [`SOURCES.md`](./SOURCES.md).
+
 ### Data Formats
 
 - **Custom experiments**: LMDB databases (see `ruintona/my_experiments/utils/lmdb_utils.py`)

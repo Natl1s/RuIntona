@@ -71,6 +71,7 @@ poetry run python ruintona/my_experiments/inference.py --model text --text "я �
 dusha_new/
 ├── DUSHA.md                   # Описание и атрибуция датасета Dusha (Salute Developers)
 ├── RESD.md                    # Описание и атрибуция датасета RESD (Aniemore, Hugging Face)
+├── SOURCES.md                 # Источники и лицензии сторонних моделей и датасетов
 ├── CORPUS.md                  # Корпусы данных и правила их сборки (Dusha + RESD)
 ├── LICENSE                    # Лицензия собственного кода (MIT)
 ├── license/                   # Лицензия датасета Dusha/Golos (RU/EN)
@@ -99,6 +100,7 @@ dusha_new/
 | Проект | [`README.md`](./README.md) |
 | Датасет Dusha и атрибуция | [`DUSHA.md`](./DUSHA.md) |
 | Датасет RESD и атрибуция | [`RESD.md`](./RESD.md) |
+| Источники сторонних моделей и датасетов | [`SOURCES.md`](./SOURCES.md) |
 | Корпусы данных и правила сборки | [`CORPUS.md`](./CORPUS.md) |
 | Обработка сырых данных | [`ruintona/data_processing/README.md`](./ruintona/data_processing/README.md) |
 | Эксперименты (обзор) | [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) |

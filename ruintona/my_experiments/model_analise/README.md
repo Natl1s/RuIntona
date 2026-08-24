@@ -29,9 +29,11 @@ Jupyter-ноутбуки с анализом результатов моделе
 
 | Модель | Источник | Test Acc | F1-macro |
 |---|---|---|---|
-| Whisper-large-v3 | [`firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3`](https://huggingface.co/firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3) | 0.435 | 0.345 |
-| WavLM-BERT fusion | [`Aniemore/wavlm-bert-fusion-s-emotion-russian-resd`](https://huggingface.co/Aniemore/wavlm-bert-fusion-s-emotion-russian-resd) | 0.552 | 0.503 |
-| **HuBERT-large (дообучен на Dusha)** | [`xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned`](https://huggingface.co/xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned) | **0.805** | **0.815** |
+| Whisper-large-v3 | `firdhokk/speech-emotion-recognition-with-openai-whisper-large-v3` | 0.435 | 0.345 |
+| WavLM-BERT fusion | `Aniemore/wavlm-bert-fusion-s-emotion-russian-resd` | 0.552 | 0.503 |
+| **HuBERT-large (дообучен на Dusha)** | `xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned` | **0.805** | **0.815** |
+
+> Ссылки на источники и лицензии предобученных моделей — [`SOURCES.md`](../../../SOURCES.md).
 
 HuBERT-эмбеддинги далее используются в late fusion (см. [`multimodal/README.md`](../multimodal/README.md)).
 

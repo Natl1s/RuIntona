@@ -2,6 +2,8 @@
 
 Общие модули, используемые всеми экспериментами: конфигурация, работа с LMDB, метрики, сохранение/загрузка моделей, реестр моделей, предобученные модели, PyTorch/sklearn-хелперы, CLI.
 
+> Источники и лицензии сторонних предобученных моделей и датасетов — [`SOURCES.md`](../../../SOURCES.md).
+
 | Модуль | Назначение | Ключевые функции |
 |---|---|---|
 | `config_utils.py` | Центральная конфигурация: `data.json`, константы, пути чекпоинтов, загрузка JSON-конфигов | `EMO2LABEL`, `TARGET_NAMES`, `DATASET_PATH`, `TRAIN_DATA_PATH`, `TEST_DATA_PATH`, `CHECKPOINTS_DIR`, `resolve_model_path()`, `checkpoints_dir_for()`, `load_experiment_config()`, `apply_config_to_args()`, `add_config_arg()`, `add_data_path_args()`, `resolve_data_paths()`, `find_pretrained_model()` |

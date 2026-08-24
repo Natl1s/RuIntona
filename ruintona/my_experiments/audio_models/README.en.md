@@ -2,6 +2,8 @@
 
 Emotion classification from audio. Features are read from LMDB (`x` — mel-spectrogram of shape `(1, 64, T)`), raw `waveform` — for wav2vec2.
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../SOURCES.en.md).
+
 ## Models
 
 | Folder / script | Model | Input features | Framework |

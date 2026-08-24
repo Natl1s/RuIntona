@@ -2,6 +2,8 @@
 
 Joint emotion classification from audio and text. Best project result: **late fusion HuBERT + RuBERT (α = 0.5) → Test Acc 0.822, F1-macro 0.830 on `dusha_resd_test`** (the α=0.5 weight was tuned on `combine_balanced`).
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../SOURCES.en.md).
+
 ## Models
 
 | Script | Approach | Components | Output |

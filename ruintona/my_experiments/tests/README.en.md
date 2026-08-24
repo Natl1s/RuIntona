@@ -2,6 +2,8 @@
 
 Smoke tests for the models: each script is run in `--mode smoke` on tiny synthetic LMDBs. Run in CI (`.github/workflows/ci.yml`: `ruff` + `pytest`).
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../SOURCES.en.md).
+
 ## Structure
 
 | File | Purpose |

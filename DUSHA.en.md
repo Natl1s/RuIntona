@@ -6,6 +6,8 @@ Dusha is a **bi-modal corpus** of Russian speech designed for Speech Emotion Rec
 
 > **Note on derived corpora.** The experiments in this repository mostly run on a combined corpus built from Dusha and the [RESD](RESD.md) dataset (Aniemore, Hugging Face). See [CORPUS.md](CORPUS.md) for a description of the corpora and the rules for building them.
 
+> Consolidated sources of all third-party components (models + datasets) — [`SOURCES.en.md`](./SOURCES.en.md).
+
 ## Official sources
 
 | Source | Link |

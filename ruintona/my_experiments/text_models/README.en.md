@@ -2,6 +2,8 @@
 
 Emotion classification from text (transcripts). Data is read from LMDB (text keys: `speaker_text` / `text` / `transcript` / `utterance`).
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../SOURCES.en.md).
+
 ## Models
 
 | Model | Features | Architecture | README |

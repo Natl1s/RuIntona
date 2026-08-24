@@ -7,6 +7,8 @@ This repository trains and evaluates models on corpora built from two source dat
 
 All artifacts live under `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](./SOURCES.en.md).
+
 ## License
 
 The corpora inherit the licenses of their source datasets:

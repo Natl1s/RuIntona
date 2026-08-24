@@ -15,7 +15,11 @@ See the referenced files for the full license texts and attribution.
 
 Pretrained models and word vectors are not vendored in the repository; they are
 downloaded at runtime (`ruintona/my_experiments/utils/pretrained.py`) or loaded
-from Hugging Face Hub by the experiment/evaluation scripts. Their licenses are:
+from Hugging Face Hub by the experiment/evaluation scripts.
+This project uses the following third-party pretrained components: RuBERT,
+Wav2Vec2 XLS-R 300M, HuBERT-large SER, Whisper large-v3 SER, WavLM-BERT fusion,
+FastText word vectors, plus the Dusha and RESD datasets. Full source links —
+see [`SOURCES.md`](./SOURCES.md). Their licenses are:
 
 | Component | License | Source |
 |---|---|---|

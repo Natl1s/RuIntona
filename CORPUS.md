@@ -7,6 +7,8 @@
 
 Все артефакты находятся в `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
+> Источники и лицензии сторонних предобученных моделей и датасетов — [`SOURCES.md`](./SOURCES.md).
+
 ## Лицензия
 
 Корпусы наследуют лицензии исходных датасетов:

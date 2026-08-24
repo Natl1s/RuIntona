@@ -2,6 +2,8 @@
 
 Interactive demo of inference of trained models on a single example: **audio** (mel-spectrogram → CNN-BiLSTM) + **text** (RuBERT) → soft-voting (**late-fusion**).
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../SOURCES.en.md).
+
 ## Contents
 
 | File | Purpose |
