@@ -75,7 +75,7 @@ def main():
     
     # Проверка существования embeddings
     if not Path(embeddings_path).exists():
-        print(f"\n⚠ Файл embeddings не найден: {embeddings_path}")
+        print(f"\nФайл embeddings не найден: {embeddings_path}")
         print("\nСкачайте предобученные embeddings:")
         print("wget https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.ru.300.bin.gz")
         print("gunzip cc.ru.300.bin.gz")

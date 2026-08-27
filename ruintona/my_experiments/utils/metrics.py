@@ -246,22 +246,22 @@ def print_eval_block(
         _fallback_text_output(title, metrics, y_true, y_pred, target_names, labels)
         return
 
-    # ── 1. Title ──
-    print(f"\n{'━' * 70}")
+    # 1. Title
+    print(f"\n{'=' * 70}")
     print(f"  {title}")
-    print(f"{'━' * 70}")
+    print(f"{'=' * 70}")
 
-    # ── 2. Overview metrics ──
+    # 2. Overview metrics
     print("\nOverall Metrics:")
     ipy_display(_overview_df(metrics))
 
-    # ── 3. Per-class report ──
+    # 3. Per-class report
     per_class, report_dict = _per_class_df(y_true, y_pred, target_names, labels)
     print("Per-Class Report:")
     ipy_display(per_class)
 
-    # ── 4. Confusion matrix ──
+    # 4. Confusion matrix
     _plot_confusion_matrix(y_true, y_pred, target_names, labels)
 
-    # ── 5. Per-class bar chart ──
+    # 5. Per-class bar chart
     _plot_per_class_metrics(report_dict, target_names)

@@ -37,7 +37,7 @@ def train_logistic_regression(save=True, config=None, train_path=None, test_path
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка обучающих данных...")
     X_train, y_train = load_audio_features_from_lmdb(train_manifest)
@@ -66,7 +66,7 @@ def train_logistic_regression(save=True, config=None, train_path=None, test_path
         class_weight=cfg["class_weight"],
     )
     model.fit(X_train_scaled, y_train)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train, y_train, X_test, y_test,
@@ -101,7 +101,7 @@ def load_and_evaluate(train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model, scaler = load_sklearn_model(
         dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME,

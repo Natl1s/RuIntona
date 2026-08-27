@@ -1009,7 +1009,7 @@ def main():
         raise ValueError("--one-batch-steps должен быть > 0")
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_wav2vec(
             train_lmdb=train_lmdb,
             test_lmdb=test_lmdb,

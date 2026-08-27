@@ -43,7 +43,7 @@ def train_svm(save=True, kernel="rbf", C=1.0, gamma="scale", train_path=None, te
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка обучающих данных...")
     X_train, y_train = load_audio_features_from_lmdb(train_manifest)
@@ -69,7 +69,7 @@ def train_svm(save=True, kernel="rbf", C=1.0, gamma="scale", train_path=None, te
 
     model = SVC(kernel=kernel, C=C, gamma=gamma, probability=False, random_state=42, verbose=True)
     model.fit(X_train_scaled, y_train)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train, y_train, X_test, y_test,
@@ -103,7 +103,7 @@ def load_and_evaluate(train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model, scaler = load_sklearn_model(
         dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME,
@@ -152,18 +152,18 @@ if __name__ == "__main__":
     _exists = lambda dn: sklearn_model_exists(dn, models_dir=MODELS_DIR, model_name=MODEL_NAME)
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_svm(save=False, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)
     elif args.mode == "train":
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)
     elif args.mode == "load":
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         load_and_evaluate(train_path=train_path, test_path=test_path)
     else:
         if _exists(dataset_name):
-            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO — найдена существующая модель, загружаем...\n")
             load_and_evaluate(train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
             train_svm(save=not args.no_save, kernel=args.kernel, C=args.C, gamma=gamma_value, train_path=train_path, test_path=test_path)

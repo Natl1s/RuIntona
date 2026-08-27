@@ -264,7 +264,7 @@ def apply_config_to_args(
         if parser is not None:
             if attr_name not in known_dests:
                 print(
-                    f"⚠️  Конфиг: ключ '{key}' не соответствует ни одному аргументу "
+                    f" Конфиг: ключ '{key}' не соответствует ни одному аргументу "
                     f"скрипта и будет проигнорирован (возможно, опечатка).",
                     file=sys.stderr,
                 )

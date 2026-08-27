@@ -311,7 +311,7 @@ def main():
         raise FileNotFoundError(f"Test LMDB не найден: {test_lmdb}")
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_cnn(
             train_lmdb=train_lmdb, test_lmdb=test_lmdb,
             epochs=2, batch_size=8, lr=cfg["lr"],

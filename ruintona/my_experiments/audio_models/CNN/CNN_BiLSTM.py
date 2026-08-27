@@ -472,7 +472,7 @@ def _write_tuned_config(
     config_path.write_text(
         json.dumps(updated, ensure_ascii=False, indent=4) + "\n", encoding="utf-8",
     )
-    print(f"✓ Подобранные гиперпараметры сохранены: {config_path.absolute()}")
+    print(f"Подобранные гиперпараметры сохранены: {config_path.absolute()}")
 
 
 def _save_tune_results(study, dataset_name, max_samples, tune_epochs):
@@ -514,8 +514,8 @@ def _save_tune_results(study, dataset_name, max_samples, tune_epochs):
     )
     trials_path = results_dir / f"{MODEL_NAME}_{dataset_name}_optuna_trials.csv"
     study.trials_dataframe().to_csv(trials_path, index=False)
-    print(f"\n✓ Результаты поиска сохранены: {results_path.absolute()}")
-    print(f"✓ История триалов сохранена:  {trials_path.absolute()}")
+    print(f"\nРезультаты поиска сохранены: {results_path.absolute()}")
+    print(f"История триалов сохранена:  {trials_path.absolute()}")
 
 
 def tune_cnn_bilstm(
@@ -545,7 +545,7 @@ def tune_cnn_bilstm(
     device = resolve_device(device_arg)
     use_cuda = device.type == "cuda"
     dataset_name = get_dataset_name(train_lmdb)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка данных...")
     train_ds = LmdbFeaturesDataset(train_lmdb)
@@ -610,7 +610,7 @@ def tune_cnn_bilstm(
 
     study.optimize(objective, n_trials=n_trials, timeout=timeout, show_progress_bar=False)
 
-    print(f"\n✓ Поиск завершён. Лучший val f1-macro: {study.best_value:.4f}")
+    print(f"\nПоиск завершён. Лучший val f1-macro: {study.best_value:.4f}")
     print(f"Лучшие параметры: {study.best_params}")
     print("\nТоп-5 триалов:")
     for t in sorted(
@@ -706,7 +706,7 @@ def main():
         raise FileNotFoundError(f"Test LMDB не найден: {test_lmdb}")
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_cnn_bilstm(
             train_lmdb=train_lmdb, test_lmdb=test_lmdb,
             epochs=2, batch_size=8, lr=args.lr,
@@ -717,7 +717,7 @@ def main():
             conv_channels=[8, 16], classifier_dropout=0.1,
         )
     elif args.mode == "tune":
-        print("🔍 Режим: Подбор гиперпараметров (Optuna)\n")
+        print("Режим: Подбор гиперпараметров (Optuna)\n")
         tune_cnn_bilstm(
             train_lmdb=train_lmdb, test_lmdb=test_lmdb,
             n_trials=args.n_trials, timeout=args.tune_timeout,

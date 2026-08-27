@@ -117,7 +117,7 @@ def _write_batch(env: lmdb.Environment, batch: list[tuple[bytes, bytes]]) -> Non
             prev_size = env.info()["map_size"]
             new_size = prev_size * 2
             env.set_mapsize(new_size)
-            print(f"⚠️ LMDB map_size увеличен: {prev_size // (1024**2)}MB -> {new_size // (1024**2)}MB")
+            print(f"LMDB map_size увеличен: {prev_size // (1024**2)}MB -> {new_size // (1024**2)}MB")
 
 
 def read_manifest(manifest_path: Path, data_root: Path) -> tuple[list[Sample], int]:
@@ -158,14 +158,14 @@ def convert_to_lmdb(
     lmdb_path: Path,
     commit_interval: int = 1024,
 ) -> None:
-    print("📥 Читаем manifest...")
+    print("Читаем manifest...")
     samples, total_feature_bytes = read_manifest(manifest_path=manifest_path, data_root=data_root)
     if not samples:
         raise ValueError("Manifest пустой: нечего конвертировать")
 
     print(f"Всего записей: {len(samples)}")
     map_size = estimate_map_size(total_feature_bytes=total_feature_bytes, num_samples=len(samples))
-    print(f"📦 Создаём LMDB (начальный map_size={map_size // (1024**2)}MB)")
+    print(f"Создаём LMDB (начальный map_size={map_size // (1024**2)}MB)")
 
     env = _open_lmdb(path=lmdb_path, map_size=map_size)
     batch: list[tuple[bytes, bytes]] = []
@@ -190,7 +190,7 @@ def convert_to_lmdb(
     finally:
         env.close()
 
-    print(f"✅ Готово: {lmdb_path}")
+    print(f"Готово: {lmdb_path}")
 
 
 def build_arg_parser() -> argparse.ArgumentParser:

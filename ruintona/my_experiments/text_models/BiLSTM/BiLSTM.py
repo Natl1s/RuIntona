@@ -250,7 +250,7 @@ def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: st
         pooling_mode=model_params.get("pooling_mode", "last_hidden"),
     )
     model.load_state_dict(checkpoint["model_state_dict"])
-    print(f"✓ Модель загружена из {MODELS_DIR}")
+    print(f"Модель загружена из {MODELS_DIR}")
     return model, checkpoint
 
 
@@ -306,7 +306,7 @@ def train_bilstm(
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"\n📊 Датасет: {dataset_name}\n")
+    print(f"\nДатасет: {dataset_name}\n")
 
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА ОБУЧАЮЩИХ ДАННЫХ")
@@ -340,8 +340,8 @@ def train_bilstm(
     print(f"{'=' * 60}")
     word2idx = build_vocab(train_texts, max_vocab_size=max_vocab_size, min_freq=min_freq)
     embedding_matrix = build_embedding_matrix(word2idx, fasttext_model)
-    print(f"✓ Размер словаря: {len(word2idx)}")
-    print(f"✓ Размер embedding matrix: {embedding_matrix.shape}")
+    print(f"Размер словаря: {len(word2idx)}")
+    print(f"Размер embedding matrix: {embedding_matrix.shape}")
 
     train_ds = TextSequenceDataset(train_texts, y_train_raw, word2idx, max_len=max_len)
     val_ds = TextSequenceDataset(val_texts, y_val_raw, word2idx, max_len=max_len)
@@ -705,7 +705,7 @@ if __name__ == "__main__":
 
     dataset_name = get_dataset_name(train_path)
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_bilstm(
             embeddings_path=None,
             save=False,
@@ -753,10 +753,10 @@ if __name__ == "__main__":
         load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
     else:
         if model_exists(dataset_name):
-            print("📂 Режим: AUTO - найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO - найдена существующая модель, загружаем...\n")
             load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO - модель не найдена, начинаем обучение...\n")
             train_bilstm(
                 embeddings_path=args.embeddings_path,
                 save=not args.no_save,

@@ -63,7 +63,7 @@ def train_tfidf_logreg(save=True, config=None, train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка обучающих данных...")
     X_train_texts, y_train = load_texts_from_manifest(train_manifest)
@@ -82,12 +82,12 @@ def train_tfidf_logreg(save=True, config=None, train_path=None, test_path=None):
 
     vectorizer = TfidfVectorizer(**tfidf_params)
     X_train_tfidf = vectorizer.fit_transform(X_train_texts)
-    print(f"✓ Размер матрицы TF-IDF признаков (train): {X_train_tfidf.shape}")
+    print(f"Размер матрицы TF-IDF признаков (train): {X_train_tfidf.shape}")
     print(f"  - Количество документов: {X_train_tfidf.shape[0]}")
     print(f"  - Количество признаков (размер словаря): {X_train_tfidf.shape[1]}")
 
     X_test_tfidf = vectorizer.transform(X_test_texts)
-    print(f"✓ Размер матрицы TF-IDF признаков (test): {X_test_tfidf.shape}")
+    print(f"Размер матрицы TF-IDF признаков (test): {X_test_tfidf.shape}")
 
     print(f"\n{'=' * 60}")
     print("ОБУЧЕНИЕ МОДЕЛИ LOGISTIC REGRESSION")
@@ -95,7 +95,7 @@ def train_tfidf_logreg(save=True, config=None, train_path=None, test_path=None):
 
     model = LogisticRegression(**logreg_params)
     model.fit(X_train_tfidf, y_train)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train_texts, y_train, X_test_texts, y_test,
@@ -132,7 +132,7 @@ def load_and_evaluate(train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model, vectorizer = load_sklearn_model(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME, artifact_name="vectorizer")
 
@@ -167,18 +167,18 @@ if __name__ == "__main__":
     _exists = lambda dn: sklearn_model_exists(dn, models_dir=MODELS_DIR, model_name=MODEL_NAME, artifact_name="vectorizer")
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_tfidf_logreg(save=False, config=experiment_config, train_path=train_path, test_path=test_path)
     elif args.mode == 'train':
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         train_tfidf_logreg(save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)
     elif args.mode == 'load':
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         load_and_evaluate(train_path=train_path, test_path=test_path)
     else:
         if _exists(dataset_name):
-            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO — найдена существующая модель, загружаем...\n")
             load_and_evaluate(train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
             train_tfidf_logreg(save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)

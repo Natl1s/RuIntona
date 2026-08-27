@@ -153,7 +153,7 @@ def _resolve_feature_set(name):
     for member in opensmile.FeatureSet:
         if member.name.lower() == name.lower():
             return member
-    print(f"⚠ Неизвестный feature_set '{name}', используем eGeMAPSv02", file=sys.stderr)
+    print(f"Неизвестный feature_set '{name}', используем eGeMAPSv02", file=sys.stderr)
     return opensmile.FeatureSet.eGeMAPSv02
 
 
@@ -165,7 +165,7 @@ def _resolve_feature_level(name):
     for member in opensmile.FeatureLevel:
         if member.name.lower() == name.lower():
             return member
-    print(f"⚠ Неизвестный feature_level '{name}', используем Functionals", file=sys.stderr)
+    print(f"Неизвестный feature_level '{name}', используем Functionals", file=sys.stderr)
     return opensmile.FeatureLevel.Functionals
 
 
@@ -293,7 +293,7 @@ def load_opensmile_features_from_manifest(
             except Exception as exc:
                 n_skipped += 1
                 if line_idx <= 5:
-                    print(f"⚠ Пропуск sample (строка {line_idx}): {exc}")
+                    print(f"Пропуск sample (строка {line_idx}): {exc}")
                 continue
 
     if not features:
@@ -490,7 +490,7 @@ def train_opensmile_boosting(
     if dataset_path is None:
         dataset_path = get_dataset_path()
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     train_cache = None
     test_cache = None
@@ -533,7 +533,7 @@ def train_opensmile_boosting(
         xgboost_params=xgboost_params, lightgbm_params=lightgbm_params,
     )
     model.fit(X_train, _to_emotion_indices(y_train))
-    print(f"✓ Обучение завершено! ({resolved_model_name})")
+    print(f"Обучение завершено! ({resolved_model_name})")
 
     metrics = evaluate_model(
         _as_emotion_string_predictor(model), X_train, y_train, X_test, y_test, feature_names, focus_stats_train
@@ -589,7 +589,7 @@ def load_and_evaluate(
     if dataset_path is None:
         dataset_path = get_dataset_path()
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model = load_model(dataset_name)
 
@@ -680,7 +680,7 @@ if __name__ == "__main__":
     }
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_opensmile_boosting(
             save=False, model_type=args.model_type,
             random_state=args.random_state,
@@ -694,15 +694,15 @@ if __name__ == "__main__":
             train_path=train_path, test_path=test_path,
         )
     elif args.mode == "train":
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         train_opensmile_boosting(save=not args.no_save, **common_kwargs)
     elif args.mode == "load":
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         load_and_evaluate(**common_kwargs)
     else:
         if model_exists(dataset_name):
-            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO — найдена существующая модель, загружаем...\n")
             load_and_evaluate(**common_kwargs)
         else:
-            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
             train_opensmile_boosting(save=not args.no_save, **common_kwargs)

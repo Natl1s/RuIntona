@@ -101,11 +101,11 @@ def evaluate_sklearn_classifier(
     print(f"Train F1-macro: {train_f1_macro:.4f} | Test F1-macro: {test_f1_macro:.4f} | "
           f"Gap: {train_f1_macro - test_f1_macro:.4f}")
     if train_accuracy - test_accuracy > 0.15:
-        print("⚠️  Разрыв train/test значительный (>0.15) — модель склонна к переобучению. "
+        print(" Разрыв train/test значительный (>0.15) — модель склонна к переобучению. "
               "Рекомендуется усилить регуляризацию (max_depth, min_samples_leaf, ccp_alpha) "
               "или подобрать гиперпараметры.")
     elif train_accuracy - test_accuracy < 0.05:
-        print("✓ Разрыв train/test небольшой (<0.05) — признаков переобучения нет.")
+        print("Разрыв train/test небольшой (<0.05) — признаков переобучения нет.")
     else:
         print("Разрыв train/test умеренный — при желании можно усилить регуляризацию.")
 

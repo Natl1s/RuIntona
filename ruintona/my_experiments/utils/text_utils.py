@@ -99,9 +99,9 @@ def load_fasttext_model(embeddings_path: Path | str) -> object:
         raise FileNotFoundError(f"Файл с embeddings не найден: {embeddings_path}")
 
     print(f"Загрузка FastText embeddings из {embeddings_path}...")
-    print("⏳ Это может занять несколько минут...")
+    print("Это может занять несколько минут...")
     model = load_facebook_model(str(embeddings_path))
-    print("✓ Embeddings загружены!")
+    print("Embeddings загружены!")
     print(f"  - Размерность вектора: {model.wv.vector_size}")
     print(f"  - Количество слов в словаре: {len(model.wv)}")
     return model

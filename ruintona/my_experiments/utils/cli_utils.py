@@ -55,23 +55,23 @@ def dispatch_mode(
     """
     if args.mode == "smoke":
         if smoke_fn is not None:
-            print("💨 Режим: Smoke-тест\n")
+            print("Режим: Smoke-тест\n")
             return smoke_fn()
-        print("⚠️  Режим smoke не реализован для этой модели, запускаем train (save=False)\n")
+        print(" Режим smoke не реализован для этой модели, запускаем train (save=False)\n")
         return train_fn(save=False)
 
     if args.mode == "train":
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         return train_fn(save=not args.no_save)
 
     if args.mode == "load":
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         return load_fn()
 
     # auto
     if model_exists_fn(dataset_name):
-        print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+        print("Режим: AUTO — найдена существующая модель, загружаем...\n")
         return load_fn()
 
-    print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+    print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
     return train_fn(save=not args.no_save)

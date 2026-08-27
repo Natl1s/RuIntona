@@ -57,7 +57,7 @@ def texts_to_vectors(texts, fasttext_model, verbose=True):
     vectors = [text_to_vector(text, fasttext_model) for text in texts_iter]
     vectors_matrix = np.vstack(vectors)
     if verbose:
-        print(f"✓ Создана матрица векторов: {vectors_matrix.shape}")
+        print(f"Создана матрица векторов: {vectors_matrix.shape}")
     return vectors_matrix
 
 
@@ -98,7 +98,7 @@ def train_embeddings_logreg(embeddings_path=None, save=True, config=None, train_
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"\n📊 Датасет: {dataset_name}\n")
+    print(f"\nДатасет: {dataset_name}\n")
 
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА ОБУЧАЮЩИХ ДАННЫХ")
@@ -127,7 +127,7 @@ def train_embeddings_logreg(embeddings_path=None, save=True, config=None, train_
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-    print("✓ Признаки нормализованы (StandardScaler)")
+    print("Признаки нормализованы (StandardScaler)")
 
     print(f"\n{'=' * 60}")
     print("ОБУЧЕНИЕ МОДЕЛИ LOGISTIC REGRESSION")
@@ -135,7 +135,7 @@ def train_embeddings_logreg(embeddings_path=None, save=True, config=None, train_
 
     model = LogisticRegression(**cfg_logreg)
     model.fit(X_train_scaled, y_train)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train, y_train, X_test, y_test,
@@ -178,7 +178,7 @@ def load_and_evaluate(embeddings_path=None, train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model, scaler = load_sklearn_model(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME)
 
@@ -223,18 +223,18 @@ if __name__ == "__main__":
     dataset_name = get_dataset_name(train_path)
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_embeddings_logreg(embeddings_path=args.embeddings_path, save=False, config=experiment_config, train_path=train_path, test_path=test_path)
     elif args.mode == 'train':
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)
     elif args.mode == 'load':
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         load_and_evaluate(embeddings_path=args.embeddings_path, train_path=train_path, test_path=test_path)
     else:
         if sklearn_model_exists(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME):
-            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO — найдена существующая модель, загружаем...\n")
             load_and_evaluate(embeddings_path=args.embeddings_path, train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
             train_embeddings_logreg(embeddings_path=args.embeddings_path, save=not args.no_save, config=experiment_config, train_path=train_path, test_path=test_path)

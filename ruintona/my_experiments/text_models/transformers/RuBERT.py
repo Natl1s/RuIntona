@@ -259,7 +259,7 @@ def load_model(dataset_name: str, model_name: str = MODEL_NAME, map_location: st
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir)
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_params["backbone_name"])
-    print(f"✓ Модель загружена из {MODELS_DIR}")
+    print(f"Модель загружена из {MODELS_DIR}")
     return model, tokenizer, checkpoint
 
 
@@ -364,13 +364,13 @@ def train_rubert(
     amp_device_type = "cuda" if use_cuda else "cpu"
     use_fp16 = bool(fp16 and use_cuda)
     if fp16 and not use_cuda:
-        print("⚠ fp16 запрошен, но CUDA недоступна. fp16 отключён.")
+        print("fp16 запрошен, но CUDA недоступна. fp16 отключён.")
     print(f"Обучение запущено на устройстве: {device}")
 
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"\n📊 Датасет: {dataset_name}\n")
+    print(f"\nДатасет: {dataset_name}\n")
 
     print(f"{'=' * 60}")
     print("ЗАГРУЗКА ОБУЧАЮЩИХ ДАННЫХ")
@@ -803,7 +803,7 @@ if __name__ == "__main__":
 
     dataset_name = get_dataset_name(train_path)
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_rubert(
             backbone_name=args.backbone_name,
             save=False,
@@ -858,10 +858,10 @@ if __name__ == "__main__":
         load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
     else:
         if model_exists(dataset_name):
-            print("📂 Режим: AUTO - найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO - найдена существующая модель, загружаем...\n")
             load_and_evaluate(device_arg=args.device, train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO - модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO - модель не найдена, начинаем обучение...\n")
             train_rubert(
                 backbone_name=args.backbone_name,
                 save=not args.no_save,

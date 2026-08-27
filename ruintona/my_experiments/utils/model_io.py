@@ -165,9 +165,9 @@ def save_sklearn_model(
     print(f"\n{'=' * 60}")
     print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
     print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ {artifact_name.title()}: {artifact_path.absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
+    print(f"Модель: {model_path.absolute()}")
+    print(f"{artifact_name.title()}: {artifact_path.absolute()}")
+    print(f"Отчёт:  {report_path.absolute()}")
     print(f"{'=' * 60}")
 
     return model_path
@@ -209,8 +209,8 @@ def load_sklearn_model(
     model = joblib.load(model_path)
     artifact = joblib.load(artifact_path)
 
-    print(f"✓ Модель загружена из {model_path}")
-    print(f"✓ {artifact_name.title()} загружен из {artifact_path}")
+    print(f"Модель загружена из {model_path}")
+    print(f"{artifact_name.title()} загружен из {artifact_path}")
 
     return model, artifact
 
@@ -361,10 +361,10 @@ def save_pytorch_model(
     print(f"\n{'=' * 60}")
     print("ПАРАМЕТРЫ МОДЕЛИ СОХРАНЕНЫ")
     print(f"{'=' * 60}")
-    print(f"✓ Модель: {model_path.absolute()}")
-    print(f"✓ Отчёт:  {report_path.absolute()}")
+    print(f"Модель: {model_path.absolute()}")
+    print(f"Отчёт:  {report_path.absolute()}")
     if extra_artifacts:
-        print(f"✓ Артефакты: {list(extra_artifacts.keys())}")
+        print(f"Артефакты: {list(extra_artifacts.keys())}")
     print(f"{'=' * 60}")
 
     return model_path
@@ -401,7 +401,7 @@ def load_pytorch_model(
     if "model_state_dict" not in checkpoint:
         checkpoint = {"model_state_dict": checkpoint}
 
-    print(f"✓ Checkpoint загружен из {model_path}")
+    print(f"Checkpoint загружен из {model_path}")
     return checkpoint
 
 
@@ -568,5 +568,5 @@ def save_metrics_report(
         "",
     ]
     metrics_path.write_text("\n".join(full_report_lines), encoding="utf-8")
-    print(f"✓ Метрики сохранены: {metrics_path.absolute()}")
+    print(f"Метрики сохранены: {metrics_path.absolute()}")
     return metrics_path

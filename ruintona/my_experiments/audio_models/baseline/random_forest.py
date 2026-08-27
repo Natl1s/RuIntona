@@ -76,7 +76,7 @@ def train_random_forest(save=True, n_estimators=100, max_depth=None,
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка обучающих данных...")
     X_train, y_train = load_audio_features_from_lmdb(train_manifest)
@@ -110,7 +110,7 @@ def train_random_forest(save=True, n_estimators=100, max_depth=None,
         random_state=42, n_jobs=-1, verbose=1,
     )
     model.fit(X_train_scaled, y_train)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train, y_train, X_test, y_test,
@@ -163,7 +163,7 @@ def _save_search_results(search, dataset_name, grid):
     results_path.write_text(
         json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8",
     )
-    print(f"\n✓ Результаты поиска сохранены: {results_path.absolute()}")
+    print(f"\nРезультаты поиска сохранены: {results_path.absolute()}")
 
 
 def tune_random_forest(save=True, search_iterations=20, cv_folds=3,
@@ -180,7 +180,7 @@ def tune_random_forest(save=True, search_iterations=20, cv_folds=3,
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     print("Загрузка обучающих данных...")
     X_train_full, y_train_full = load_audio_features_from_lmdb(train_manifest)
@@ -216,7 +216,7 @@ def tune_random_forest(save=True, search_iterations=20, cv_folds=3,
         scoring="f1_macro", n_jobs=-1, random_state=42, verbose=1,
     )
     search.fit(X_search_scaled, y_search)
-    print("✓ Поиск завершён!")
+    print("Поиск завершён!")
 
     print(f"\nЛучшие параметры: {search.best_params_}")
     print(f"Лучший CV f1-macro: {search.best_score_:.4f}")
@@ -244,7 +244,7 @@ def tune_random_forest(save=True, search_iterations=20, cv_folds=3,
         **best_params, random_state=42, n_jobs=-1, oob_score=True,
     )
     model.fit(X_train_scaled, y_train_full)
-    print("✓ Обучение завершено!")
+    print("Обучение завершено!")
 
     metrics = evaluate_sklearn_classifier(
         model, X_train_full, y_train_full, X_test, y_test,
@@ -280,7 +280,7 @@ def load_and_evaluate(train_path=None, test_path=None):
     train_manifest = train_path
     test_manifest = test_path
     dataset_name = get_dataset_name(train_manifest)
-    print(f"📊 Датасет: {dataset_name}\n")
+    print(f"Датасет: {dataset_name}\n")
 
     model, scaler = load_sklearn_model(dataset_name, models_dir=MODELS_DIR, model_name=MODEL_NAME)
 
@@ -352,7 +352,7 @@ if __name__ == "__main__":
         )
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         train_random_forest(
             save=False, n_estimators=10, max_depth=3,
             min_samples_split=2, min_samples_leaf=1,
@@ -360,7 +360,7 @@ if __name__ == "__main__":
             train_path=train_path, test_path=test_path,
         )
     elif args.mode == "tune":
-        print("🔍 Режим: Подбор гиперпараметров\n")
+        print("Режим: Подбор гиперпараметров\n")
         tune_random_forest(
             save=not args.no_save,
             search_iterations=args.search_iterations, cv_folds=args.cv_folds,
@@ -368,15 +368,15 @@ if __name__ == "__main__":
             train_path=train_path, test_path=test_path,
         )
     elif args.mode == "train":
-        print("🎯 Режим: Обучение новой модели\n")
+        print("Режим: Обучение новой модели\n")
         _train(save=not args.no_save)
     elif args.mode == "load":
-        print("📂 Режим: Загрузка существующей модели\n")
+        print("Режим: Загрузка существующей модели\n")
         load_and_evaluate(train_path=train_path, test_path=test_path)
     else:
         if _exists(dataset_name):
-            print("📂 Режим: AUTO — найдена существующая модель, загружаем...\n")
+            print("Режим: AUTO — найдена существующая модель, загружаем...\n")
             load_and_evaluate(train_path=train_path, test_path=test_path)
         else:
-            print("🎯 Режим: AUTO — модель не найдена, начинаем обучение...\n")
+            print("Режим: AUTO — модель не найдена, начинаем обучение...\n")
             _train(save=not args.no_save)

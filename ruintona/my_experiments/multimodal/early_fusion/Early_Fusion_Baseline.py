@@ -771,7 +771,7 @@ def main():
         args = apply_config_to_args(args, experiment_config, parser)
 
     if args.mode == "smoke":
-        print("💨 Режим: Smoke-тест\n")
+        print("Режим: Smoke-тест\n")
         args.epochs = 2
         args.batch_size = 8
         args.device = "cpu"
