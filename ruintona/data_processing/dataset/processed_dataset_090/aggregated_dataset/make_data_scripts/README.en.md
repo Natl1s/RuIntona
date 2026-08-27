@@ -2,6 +2,8 @@
 
 Scripts to prepare datasets from the processed manifests of `data_processing`. All commands below can be run from the repository root (or use paths matching your local layout).
 
+> Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../../../../../SOURCES.en.md).
+
 The scripts live in:
 `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/`
 
