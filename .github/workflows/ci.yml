@@ -26,5 +26,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install poetry
-      - run: poetry install --with dev --with ml --with tuning
+      - run: poetry install --with dev --extras ml --extras tuning
       - run: poetry run pytest ruintona/my_experiments/tests/ -v
