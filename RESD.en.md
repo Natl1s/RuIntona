@@ -2,7 +2,7 @@
 
 > Note: this page is a mirror/summary of the upstream dataset card. The authoritative source is the Hugging Face page: <https://huggingface.co/datasets/Aniemore/resd_annotated> (DOI [10.57967/hf/1272](https://doi.org/10.57967/hf/1272)).
 
-RESD — **Russian Emotional Speech Dialogues** — is a Russian speech emotion recognition dataset published by the [Aniemore](https://huggingface.co/Aniemore) team. In this repository the `resd_annotated` version is used as a secondary source to augment the [Dusha](DUSHA.md) corpus (see [CORPUS.md](CORPUS.md)).
+RESD — **Russian Emotional Speech Dialogues** — is a Russian speech emotion recognition dataset published by the [Aniemore](https://huggingface.co/Aniemore) team. In this repository the `resd_annotated` version is used as a secondary source to augment the [Dusha.en](./DUSHA.en.md) corpus (see [CORPUS.en.md](CORPUS.en.md)).
 
 > Consolidated sources of all third-party components (models + datasets) — [`SOURCES.en.md`](./SOURCES.en.md).
 
@@ -35,7 +35,7 @@ RESD — **Russian Emotional Speech Dialogues** — is a Russian speech emotion 
 ## Use in this repository
 
 - Only rows whose emotion maps to the four target classes are kept: `anger → angry`, `happiness → positive`, `sadness → sad`, `neutral → neutral`. Other RESD classes (`disgust`, `fear`, `enthusiasm`) are excluded.
-- The selected rows are merged into the Dusha corpus to form the `dusha_resd` corpus: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. See [CORPUS.md](CORPUS.md) and `ruintona/data_processing/dataset/hug_dataset/make_raw.py`.
+- The selected rows are merged into the Dusha corpus to form the `dusha_resd` corpus: `dusha_resd_train.lmdb` / `dusha_resd_test.lmdb`. See [CORPUS.en.md](CORPUS.en.md) and `ruintona/data_processing/dataset/hug_dataset/make_raw.py`.
 
 ## Usage
 

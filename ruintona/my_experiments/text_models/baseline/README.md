@@ -1,4 +1,4 @@
-# Baseline Text Models
+# Базовые текстовые модели
 
 Модели базовой классификации эмоций на основе текстовых признаков.
 
@@ -18,7 +18,7 @@
 ### Описание
 
 Скрипт выполняет следующие шаги:
-1. **Загрузка данных** из JSONL файлов (колонка `speaker_text`)
+1. **Загрузка данных** из LMDB (текстовые ключи: `speaker_text` / `text` / `transcript` / `utterance`)
 2. **Предобработка текста**:
    - Приведение к нижнему регистру (lowercase)
    - Удаление лишних пробелов
@@ -64,9 +64,8 @@ poetry run python ruintona/my_experiments/text_models/baseline/TF-IDF_LogReg.py 
 ### Выходные файлы
 
 Модели сохраняются в директории `checkpoints/text/` (определяется автоматически):
-- `TF-IDF_LogReg_{dataset_name}_model.pkl` - обученная модель
-- `TF-IDF_LogReg_{dataset_name}_vectorizer.pkl` - TF-IDF векторизатор
-- `TF-IDF_LogReg_{dataset_name}_model_{timestamp}.pkl` - бэкап с временной меткой
+- `TF-IDF_LogReg_{dataset_name}_model_{timestamp}.pkl` - обученная модель (временная метка делает имя уникальным — отдельные бэкапы не создаются)
+- `TF-IDF_LogReg_{dataset_name}_vectorizer_{timestamp}.pkl` - TF-IDF векторизатор
 
 ---
 
@@ -78,7 +77,7 @@ poetry run python ruintona/my_experiments/text_models/baseline/TF-IDF_LogReg.py 
 
 Скрипт выполняет следующие шаги:
 1. **Загрузка предобученных FastText embeddings** (поддержка OOV слов через n-граммы)
-2. **Загрузка данных** из JSONL файлов (колонка `speaker_text`)
+2. **Загрузка данных** из LMDB (текстовые ключи: `speaker_text` / `text` / `transcript` / `utterance`)
 3. **Предобработка текста**:
    - Приведение к нижнему регистру (lowercase)
    - Удаление лишних пробелов
@@ -155,9 +154,8 @@ poetry run python ruintona/my_experiments/text_models/baseline/Embeddings_LogReg
 ### Выходные файлы
 
 Модели сохраняются в директории `checkpoints/text/` (определяется автоматически):
-- `Embeddings_LogReg_{dataset_name}_model.pkl` - обученная модель
-- `Embeddings_LogReg_{dataset_name}_scaler.pkl` - StandardScaler
-- `Embeddings_LogReg_{dataset_name}_model_{timestamp}.pkl` - бэкап с временной меткой
+- `Embeddings_LogReg_{dataset_name}_model_{timestamp}.pkl` - обученная модель (временная метка делает имя уникальным — отдельные бэкапы не создаются)
+- `Embeddings_LogReg_{dataset_name}_scaler_{timestamp}.pkl` - StandardScaler
 
 ### Преимущества FastText
 

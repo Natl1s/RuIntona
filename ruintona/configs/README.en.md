@@ -71,7 +71,7 @@ The `--config` argument is added to every experiment script via `config_utils.ad
 
 ## See also
 
-- [`my_experiments/README.md`](../my_experiments/README.md) — experiments overview
+- [`my_experiments/README.en.md`](../my_experiments/README.en.md) — experiments overview
 - [`my_experiments/HYPERPARAMETERS.md`](../my_experiments/HYPERPARAMETERS.md) — per-model hyperparameter map and tuning methodology
 - [`my_experiments/model_analise/random_forest_hyperparameter_tuning.ipynb`](../my_experiments/model_analise/random_forest_hyperparameter_tuning.ipynb) — RF tuning (RandomizedSearchCV)
 - [`my_experiments/model_analise/cnn_bilstm_hyperparameter_tuning.ipynb`](../my_experiments/model_analise/cnn_bilstm_hyperparameter_tuning.ipynb) — CNN-BiLSTM tuning (Optuna TPE)

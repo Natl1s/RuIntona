@@ -42,8 +42,8 @@ poetry run python ruintona/my_experiments/text_models/transformers/RuBERT.py --m
 
 ## Artifacts
 
-- sklearn: `{Model}_{dataset}_model.pkl` + `{...}_vectorizer.pkl` / `{...}_scaler.pkl`.
-- PyTorch: `{Model}_{dataset}_model.pt` (+ timestamped backups, vocab, meta).
+- sklearn: `{Model}_{dataset}_model_{timestamp}.pkl` + `{...}_vectorizer_{timestamp}.pkl` / `{...}_scaler_{timestamp}.pkl`.
+- PyTorch: `{Model}_{dataset}_model_{timestamp}.pt` (the checkpoint holds: state dict, model class/hyperparameters, metrics).
 - Save folder — `checkpoints/text/`.
 
 ## Results
@@ -57,6 +57,6 @@ Text model metrics are recorded in the [`model_analise/text_models_analise.ipynb
 | BiLSTM | `combine_balanced` | `dusha_resd` | 0.560 | 0.580 |
 | **RuBERT** | **`dusha_resd`** | **`dusha_resd`** | **0.586** | **0.601** |
 
-Corpus composition — [`CORPUS.md`](../../../CORPUS.md). Audio/text baselines of other modalities and multimodal results — see [`audio_models/README.md`](../audio_models/README.md) and [`multimodal/README.md`](../multimodal/README.md).
+Corpus composition — [`CORPUS.en.md`](../../../CORPUS.en.md). Audio/text baselines of other modalities and multimodal results — see [`audio_models/README.en.md`](../audio_models/README.en.md) and [`multimodal/README.en.md`](../multimodal/README.en.md).
 
 The analyzed TF-IDF/Embeddings/BiLSTM checkpoints were trained on `combine_balanced`, RuBERT on `dusha_resd` (see the notebook). By default the text model scripts (including RuBERT, checkpoint `RuBERT_dusha_resd_train_model.pt`) are trained on the combined `dusha_resd` corpus (Dusha + RESD).

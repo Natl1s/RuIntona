@@ -66,7 +66,7 @@ poetry run python ruintona/my_experiments/audio_models/baseline/random_forest.py
     --mode train --config audio/random_forest_tuned.json
 ```
 
-Result (dataset `dusha_resd`): the train/test gap shrinks and the test metric improves. Corpus composition (`dusha_resd` / `combine_balanced`) and building rules — [`CORPUS.md`](../../../CORPUS.md).
+Result (dataset `dusha_resd`): the train/test gap shrinks and the test metric improves. Corpus composition (`dusha_resd` / `combine_balanced`) and building rules — [`CORPUS.en.md`](../../../CORPUS.en.md).
 
 | Model | Train acc | Test acc | F1-macro | train−test gap |
 |---|---|---|---|---|
@@ -75,13 +75,13 @@ Result (dataset `dusha_resd`): the train/test gap shrinks and the test metric im
 
 ## Artifacts
 
-- sklearn models are saved into `checkpoints/audio/`: `{Model}_{dataset}_model.pkl` + `{...}_scaler.pkl`, report `{...}_training_report.txt`.
-- PyTorch: `{Model}_{dataset}_model.pt` (+ timestamped backup).
+- sklearn models are saved into `checkpoints/audio/` with a timestamp: `{Model}_{dataset}_model_{timestamp}.pkl` + `{...}_scaler_{timestamp}.pkl`, report `{...}_training_report.txt`.
+- PyTorch: `{Model}_{dataset}_model_{timestamp}.pt` (the timestamp makes the name unique — separate backups are not created).
 - Metadata of all experiments: `checkpoints/experiments.csv`.
 
 ## Results (audio models)
 
-Current checkpoints and reports — in `checkpoints/audio/*_training_report.txt`, `checkpoints/experiments.csv` and the notebook [`model_analise/audio_models_analise.ipynb`](../model_analise/audio_models_analise.ipynb). Logistic Regression, Random Forest (default + tuned), SVM and openSMILE+XGBoost were **retrained on the combined `dusha_resd` corpus** (06–08 Aug); CNN, CNN-BiLSTM and Wav2Vec2 were trained on `combine_balanced` / `combine_balanced_small` and evaluated on `dusha_resd_test`. Corpus composition — [`CORPUS.md`](../../../CORPUS.md).
+Current checkpoints and reports — in `checkpoints/audio/*_training_report.txt`, `checkpoints/experiments.csv` and the notebook [`model_analise/audio_models_analise.ipynb`](../model_analise/audio_models_analise.ipynb). Logistic Regression, Random Forest (default + tuned), SVM and openSMILE+XGBoost were **retrained on the combined `dusha_resd` corpus** (06–08 Aug); CNN, CNN-BiLSTM and Wav2Vec2 were trained on `combine_balanced` / `combine_balanced_small` and evaluated on `dusha_resd_test`. Corpus composition — [`CORPUS.en.md`](../../../CORPUS.en.md).
 
 | Model | Train | Test | Test Acc | F1-macro |
 |---|---|---|---|---|
@@ -96,7 +96,7 @@ Current checkpoints and reports — in `checkpoints/audio/*_training_report.txt`
 
 > Note: Wav2Vec2 XLS-R 300M + Self-Attention was trained under tight compute constraints: warm-start from the pretrained XLS-R 300M, only the last 4 layers unfrozen, training on the reduced `combine_balanced_small` subset (fp16 + gradient checkpointing), evaluation on CPU (~98 min). Hence its metrics are below what full training would likely achieve.
 
-Evaluation of pretrained foundation models (HuBERT, WavLM-BERT, Whisper) — see [`model_analise/README.md`](../model_analise/README.md) and `checkpoints/pretrained/*_eval_*.json`.
+Evaluation of pretrained foundation models (HuBERT, WavLM-BERT, Whisper) — see [`model_analise/README.en.md`](../model_analise/README.en.md) and `checkpoints/pretrained/*_eval_*.json`.
 
 ## Note
 

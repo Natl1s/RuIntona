@@ -133,10 +133,6 @@ python ruintona/data_processing/dataset/hug_dataset/add_missing_spectrograms.py 
 | `dataset_stats.py` | Статистики по raw JSONL (распределение эмоций, длительности, длина текстов, дубликаты) |
 | `add_missing_spectrograms.py` | Досчёт mel-спектрограммы `x` из `waveform` для записей без `x` (по умолчанию работает с `dusha_resd_train/test.lmdb`) |
 
-## `make_manifest.py`
-
-Пустой файл-заглушка (0 строк) — не используется.
-
 ## См. также
 
 - [`CORPUS.md`](../../../../../../CORPUS.md) — состав корпусов и полные правила построения

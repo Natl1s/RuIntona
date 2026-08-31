@@ -12,9 +12,13 @@ Smoke tests for the models: each script is run in `--mode smoke` on tiny synthet
 | `smoke_helpers.py` | Synthetic LMDB generators and helper functions |
 | `test_smoke_audio.py` | Smoke tests for audio models |
 | `test_smoke_text.py` | Smoke tests for text models |
+| `test_smoke_multimodal.py` | Smoke tests for multimodal models (early fusion) |
+| `test_model_io.py` | PyTorch checkpoint load tests (numpy globals / `weights_only` fallback) |
+| `test_pretrained.py` | Tests for `utils/pretrained.py` path resolution (FastText) |
 
 `test_smoke_audio.py` coverage: `logreg`, `svm`, `random-forest`, `cnn`, `cnn-bilstm`.
-`test_smoke_text.py` coverage: `tfidf-logreg`, `embeddings-logreg`, `bilstm`, `bilstm-text`, `rubert`.
+`test_smoke_text.py` coverage: `tfidf-logreg`, `embeddings-logreg`, `bilstm`, `rubert`.
+`test_smoke_multimodal.py` coverage: `early-fusion` (requires `torch` + `transformers`).
 
 ## Run
 

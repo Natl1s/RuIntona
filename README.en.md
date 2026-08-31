@@ -1,6 +1,6 @@
 # RuIntona — Speech Emotion Recognition (Russian speech)
 
-Research project on **Speech Emotion Recognition (SER) for Russian speech** built on the open-source [Dusha](./DUSHA.md) dataset. Utterances are classified into 4 emotions:
+Research project on **Speech Emotion Recognition (SER) for Russian speech** built on the open-source [Dusha](./DUSHA.en.md) dataset. Utterances are classified into 4 emotions:
 
 | Emotion | Label |
 |---|---|
@@ -11,7 +11,7 @@ Research project on **Speech Emotion Recognition (SER) for Russian speech** buil
 
 The project contains full training and evaluation pipelines for three modalities: **text**, **audio**, and **multimodal (audio + text)** — from raw data processing to inference and a demo notebook.
 
-> **Experiment corpus.** Most models are trained and evaluated on the combined corpus **Dusha (Sber) + [RESD](./RESD.md) (Aniemore, Hugging Face)** (`dusha_resd`). The corpora and the rules for building them from `data_processing/dataset/processed_dataset_090/aggregated_dataset` are described in [CORPUS.md](./CORPUS.md).
+> **Experiment corpus.** Most models are trained and evaluated on the combined corpus **Dusha (Sber) + [RESD.en](./RESD.en.md) (Aniemore, Hugging Face)** (`dusha_resd`). The corpora and the rules for building them from `data_processing/dataset/processed_dataset_090/aggregated_dataset` are described in [CORPUS.en.md](./CORPUS.en.md).
 
 ## Quick start
 
@@ -61,7 +61,7 @@ poetry run python ruintona/my_experiments/inference.py --model audio --audio sam
 poetry run python ruintona/my_experiments/inference.py --model text --text "я очень рад сегодня"
 ```
 
-> **Note.** Inference and the demo require trained model checkpoints in `ruintona/my_experiments/checkpoints/`. Weights are not included in the repository (see `.gitignore`): before running the demo you need to obtain them — train the models following [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md), or download separately published weights.
+> **Note.** Inference and the demo require trained model checkpoints in `ruintona/my_experiments/checkpoints/`. Weights are not included in the repository (see `.gitignore`): before running the demo you need to obtain them — train the models following [`ruintona/my_experiments/README.en.md`](./ruintona/my_experiments/README.en.md), or download separately published weights.
 
 Interactive version — the notebook [`ruintona/DEMO/demo.ipynb`](./ruintona/DEMO/demo.ipynb).
 
@@ -97,28 +97,28 @@ dusha_new/
 
 | Section | README |
 |---|---|
-| Project | [`README.md`](./README.md) |
-| Dusha dataset & attribution | [`DUSHA.md`](./DUSHA.md) |
-| RESD dataset & attribution | [`RESD.md`](./RESD.md) |
+| Project | [`README.en.md`](./README.en.md) |
+| Dusha dataset & attribution | [`DUSHA.en.md`](./DUSHA.en.md) |
+| RESD dataset & attribution | [`RESD.en.md`](./RESD.en.md) |
 | Third-party model & dataset sources | [`SOURCES.en.md`](./SOURCES.en.md) |
-| Data corpora & building rules | [`CORPUS.md`](./CORPUS.md) |
-| Raw data processing | [`ruintona/data_processing/README.md`](./ruintona/data_processing/README.md) |
-| Experiments (overview) | [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) |
-| Experiment configs | [`ruintona/configs/README.md`](./ruintona/configs/README.md) |
-| Utilities | [`ruintona/my_experiments/utils/README.md`](./ruintona/my_experiments/utils/README.md) |
-| Text models | [`ruintona/my_experiments/text_models/README.md`](./ruintona/my_experiments/text_models/README.md) |
-| Audio models | [`ruintona/my_experiments/audio_models/README.md`](./ruintona/my_experiments/audio_models/README.md) |
-| Multimodal models | [`ruintona/my_experiments/multimodal/README.md`](./ruintona/my_experiments/multimodal/README.md) |
-| Data analysis | [`ruintona/my_experiments/data_analise/README.md`](./ruintona/my_experiments/data_analise/README.md) |
-| Model analysis | [`ruintona/my_experiments/model_analise/README.md`](./ruintona/my_experiments/model_analise/README.md) |
-| Demo | [`ruintona/DEMO/README.md`](./ruintona/DEMO/README.md) |
-| Tests | [`ruintona/my_experiments/tests/README.md`](./ruintona/my_experiments/tests/README.md) |
+| Data corpora & building rules | [`CORPUS.en.md`](./CORPUS.en.md) |
+| Raw data processing | [`ruintona/data_processing/README.en.md`](./ruintona/data_processing/README.en.md) |
+| Experiments (overview) | [`ruintona/my_experiments/README.en.md`](./ruintona/my_experiments/README.en.md) |
+| Experiment configs | [`ruintona/configs/README.en.md`](./ruintona/configs/README.en.md) |
+| Utilities | [`ruintona/my_experiments/utils/README.en.md`](./ruintona/my_experiments/utils/README.en.md) |
+| Text models | [`ruintona/my_experiments/text_models/README.en.md`](./ruintona/my_experiments/text_models/README.en.md) |
+| Audio models | [`ruintona/my_experiments/audio_models/README.en.md`](./ruintona/my_experiments/audio_models/README.en.md) |
+| Multimodal models | [`ruintona/my_experiments/multimodal/README.en.md`](./ruintona/my_experiments/multimodal/README.en.md) |
+| Data analysis | [`ruintona/my_experiments/data_analise/README.en.md`](./ruintona/my_experiments/data_analise/README.en.md) |
+| Model analysis | [`ruintona/my_experiments/model_analise/README.en.md`](./ruintona/my_experiments/model_analise/README.en.md) |
+| Demo | [`ruintona/DEMO/README.en.md`](./ruintona/DEMO/README.en.md) |
+| Tests | [`ruintona/my_experiments/tests/README.en.md`](./ruintona/my_experiments/tests/README.en.md) |
 
 ## Experiment results
 
 ### Ready-made solutions (pretrained, no tuning)
 
-Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.md`](ruintona/my_experiments/model_analise/README.md), results — `checkpoints/pretrained/*_eval_*.json`.
+Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.en.md`](ruintona/my_experiments/model_analise/README.en.md), results — `checkpoints/pretrained/*_eval_*.json`.
 
 | Model | Train | Test | Test Acc | F1-macro |
 |---|---|---|---|---|
@@ -159,7 +159,7 @@ Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 sa
 | Late-fusion HuBERT + RuBERT (α=0.5) | combine_balanced (audio) + dusha_resd (text) | dusha_resd | **0.822** | **0.830** | `model_analise/multimodal_models_analise.ipynb` |
 | Late-fusion baseline SVM + TF-IDF LogReg (α=0.35) | combine_balanced | dusha_resd | 0.621 | 0.629 | `model_analise/multimodal_models_analise.ipynb` |
 
-Model-to-corpus mapping and corpus composition — see [`CORPUS.md`](./CORPUS.md). Note: the α=0.5 weight was tuned on `combine_balanced`; the text backbones of the multimodal models (RuBERT) and the early fusion were trained on `dusha_resd`, while the audio backbones (CNN-BiLSTM, HuBERT) were trained on `combine_balanced`. The text baselines TF-IDF/Embeddings/BiLSTM are evaluated on `dusha_resd_test` even though their checkpoints were trained on `combine_balanced`. All models are evaluated on `dusha_resd_test` (notebooks `text_models_analise.ipynb`, `multimodal_models_analise.ipynb`).
+Model-to-corpus mapping and corpus composition — see [`CORPUS.en.md`](./CORPUS.en.md). Note: the α=0.5 weight was tuned on `combine_balanced`; the text backbones of the multimodal models (RuBERT) and the early fusion were trained on `dusha_resd`, while the audio backbones (CNN-BiLSTM, HuBERT) were trained on `combine_balanced`. The text baselines TF-IDF/Embeddings/BiLSTM are evaluated on `dusha_resd_test` even though their checkpoints were trained on `combine_balanced`. All models are evaluated on `dusha_resd_test` (notebooks `text_models_analise.ipynb`, `multimodal_models_analise.ipynb`).
 
 ## Tests and CI
 
@@ -172,8 +172,8 @@ GitHub Actions CI is configured (`.github/workflows/ci.yml`): ruff lint + smoke 
 
 ## Dataset and license
 
-- **Datasets**: Dusha — [`DUSHA.md`](./DUSHA.md); RESD (Aniemore) — [`RESD.md`](./RESD.md); corpora and building rules — [`CORPUS.md`](./CORPUS.md).
+- **Datasets**: Dusha — [`DUSHA.en.md`](./DUSHA.en.md); RESD (Aniemore) — [`RESD.en.md`](./RESD.en.md); corpora and building rules — [`CORPUS.en.md`](./CORPUS.en.md).
 - **Dusha dataset license and `data_processing/` code**: Dusha/Golos (attribution + share-alike), license text in [`license/`](./license/). This code and the dataset are adapted from the [Salute Developers — Golos](https://github.com/salute-developers/golos) project.
-- **RESD dataset**: MIT license, attribution in [`RESD.md`](./RESD.md).
+- **RESD dataset**: MIT license, attribution in [`RESD.en.md`](./RESD.en.md).
 - **Project's own code** (`my_experiments/`, `DEMO/`, `configs/`): MIT — [`LICENSE`](./LICENSE).
 - **Summary table of licenses for all project parts** — [`NOTICE`](./NOTICE).

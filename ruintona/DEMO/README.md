@@ -10,10 +10,10 @@
 |---|---|
 | `demo.ipynb` | Ноутбук-демо: мультимодальный инференс, сравнение модальностей, визуализация |
 | `data/001ce26c07c20eaa0d666b824c6c6924.wav` | Пример аудиозаписи |
-
-> **Лицензия данных.** Сэмпл в `data/*.wav` и транскрипт `example1.json` — пример из датасета Dusha и распространяются по лицензии Dusha/Golos (attribution + share-alike), см. [`DUSHA.md`](../../DUSHA.md). Код демо — MIT (`LICENSE`).
 | `data/example1.json` | Пример транскрипта к аудио |
 | `results/demo_results.png` | Визуализация вероятностей классов по модальностям |
+
+> **Лицензия данных.** Сэмпл в `data/*.wav` и транскрипт `example1.json` — пример из датасета Dusha и распространяются по лицензии Dusha/Golos (attribution + share-alike), см. [`DUSHA.md`](../../DUSHA.md). Код демо — MIT (`LICENSE`).
 
 ## Запуск
 

@@ -7,7 +7,7 @@ Scripts to prepare datasets from the processed manifests of `data_processing`. A
 The scripts live in:
 `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/`
 
-The full description of the corpora and the overall build pipeline (including the combined Dusha + RESD corpus) — see [`CORPUS.md`](../../../../../../CORPUS.md) (repository root).
+The full description of the corpora and the overall build pipeline (including the combined Dusha + RESD corpus) — see [`CORPUS.en.md`](../../../../../../CORPUS.en.md) (repository root).
 
 ## Overview
 
@@ -133,12 +133,8 @@ Final sizes: `dusha_resd_train.lmdb` — 69119 records (68203 combine_balanced +
 | `dataset_stats.py` | Statistics over raw JSONL (emotion distribution, durations, text length, duplicates) |
 | `add_missing_spectrograms.py` | Compute mel-spectrogram `x` from `waveform` for records without `x` (by default works with `dusha_resd_train/test.lmdb`) |
 
-## `make_manifest.py`
-
-Empty placeholder file (0 lines) — not used.
-
 ## See also
 
-- [`CORPUS.md`](../../../../../../CORPUS.md) — corpus composition and full building rules
-- [`ruintona/data_processing/README.md`](../../../../README.md) — raw processing pipeline (Dawid-Skene, features)
+- [`CORPUS.en.md`](../../../../../../CORPUS.en.md) — corpus composition and full building rules
+- [`ruintona/data_processing/README.en.md`](../../../../README.en.md) — raw processing pipeline (Dawid-Skene, features)
 - [`ruintona/data_processing/dataset/hug_dataset/`](../../../hug_dataset/) — scripts for external HF datasets

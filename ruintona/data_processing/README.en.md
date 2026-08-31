@@ -7,7 +7,7 @@ Pipeline for the raw Dusha dataset: acoustic feature extraction, label aggregati
 > **License and attribution.** This code and the Dusha dataset itself are adapted
 > from the [Salute Developers — Golos](https://github.com/salute-developers/golos)
 > project and are provided under the Dusha/Golos license (attribution + share-alike).
-> License text — [`license/`](../../license/) (EN/RU); description and attribution — [`DUSHA.md`](../../DUSHA.md).
+> License text — [`license/`](../../license/) (EN/RU); description and attribution — [`DUSHA.en.md`](../../DUSHA.en.md).
 
 ```
 raw (crowd.tar / podcast.tar) → processing.py → processed_dataset_0XX/
@@ -21,9 +21,9 @@ raw (crowd.tar / podcast.tar) → processing.py → processed_dataset_0XX/
 ## Install dependencies
 
 ```bash
-poetry install --with data-processing
-# or manually from ruintona/data_processing/requirements.txt:
-# pandas==1.3.5, crowd-kit==1.0.0, click==8.0.4, tqdm==4.62.3, numpy==1.21.5, librosa==0.8.1
+poetry install --with processing
+# or manually from ruintona/data_processing/requirements.txt
+# (the file is stale and pins old versions; the current versions live in pyproject.toml)
 ```
 
 ## Run
@@ -98,6 +98,6 @@ Formats: JSONL (one JSON record per line, `ensure_ascii=False`) or TSV (header +
 
 ## Next steps
 
-Building balanced datasets and converting to LMDB — [`make_data_scripts/README.md`](./dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md). The corpora (including the combined `dusha_resd` = Dusha + RESD corpus) and the full rules for building them from `aggregated_dataset` — [`CORPUS.md`](../../CORPUS.md). Using them in experiments — [`my_experiments/README.md`](../my_experiments/README.md).
+Building balanced datasets and converting to LMDB — [`make_data_scripts/README.en.md`](./dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.en.md). The corpora (including the combined `dusha_resd` = Dusha + RESD corpus) and the full rules for building them from `aggregated_dataset` — [`CORPUS.en.md`](../../CORPUS.en.md). Using them in experiments — [`my_experiments/README.en.md`](../my_experiments/README.en.md).
 
 

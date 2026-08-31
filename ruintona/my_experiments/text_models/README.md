@@ -42,8 +42,8 @@ poetry run python ruintona/my_experiments/text_models/transformers/RuBERT.py --m
 
 ## Артефакты
 
-- sklearn: `{Модель}_{датасет}_model.pkl` + `{...}_vectorizer.pkl` / `{...}_scaler.pkl`.
-- PyTorch: `{Модель}_{датасет}_model.pt` (+ бэкапы с меткой времени, словарь, meta).
+- sklearn: `{Модель}_{датасет}_model_{timestamp}.pkl` + `{...}_vectorizer_{timestamp}.pkl` / `{...}_scaler_{timestamp}.pkl`.
+- PyTorch: `{Модель}_{датасет}_model_{timestamp}.pt` (в чекпоинте: state_dict, класс и гиперпараметры модели, метрики).
 - Папка сохранения — `checkpoints/text/`.
 
 ## Результаты

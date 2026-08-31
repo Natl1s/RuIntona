@@ -21,9 +21,9 @@ raw (crowd.tar / podcast.tar) → processing.py → processed_dataset_0XX/
 ## Установка зависимостей
 
 ```bash
-poetry install --with data-processing
-# либо вручную из ruintona/data_processing/requirements.txt:
-# pandas==1.3.5, crowd-kit==1.0.0, click==8.0.4, tqdm==4.62.3, numpy==1.21.5, librosa==0.8.1
+poetry install --with processing
+# либо вручную из ruintona/data_processing/requirements.txt
+# (файл устарел и содержит пины старых версий; актуальные версии — в pyproject.toml)
 ```
 
 ## Запуск

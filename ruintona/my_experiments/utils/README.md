@@ -21,5 +21,5 @@
 
 - **Метки эмоций**: `EMO2LABEL = {'angry': 0, 'sad': 1, 'neutral': 2, 'positive': 3}`, `TARGET_NAMES = ['angry', 'sad', 'neutral', 'positive']`.
 - **Пути к данным** задаются в `data.json` и резолвятся через `config_utils`.
-- **Чекпоинты**: конвенция имён `{Model}_{dataset}_model.{pt|pkl}`; папки `checkpoints/{text,audio,multimodal}/` определяются автоматически по пути скрипта.
+- **Чекпоинты**: конвенция имён с timestamp `{Model}_{dataset}_model_{YYYYMMDD_HHMMSS}.{pt|pkl}` (артефакты sklearn — `{...}_{scaler|vectorizer}_{ts}.pkl`); загрузка ищет последний файл с timestamp, иначе legacy-файл `{Model}_{dataset}_model.{pt|pkl}` без времени; папки `checkpoints/{text,audio,multimodal}/` определяются автоматически по пути скрипта.
 - **Режимы**: `--mode train|load|auto|smoke` — общий для всех моделей (`cli_utils.dispatch_mode`).

@@ -21,5 +21,5 @@ Shared modules used by all experiments: configuration, LMDB access, metrics, mod
 
 - **Emotion labels**: `EMO2LABEL = {'angry': 0, 'sad': 1, 'neutral': 2, 'positive': 3}`, `TARGET_NAMES = ['angry', 'sad', 'neutral', 'positive']`.
 - **Data paths** are set in `data.json` and resolved via `config_utils`.
-- **Checkpoints**: name convention `{Model}_{dataset}_model.{pt|pkl}`; folders `checkpoints/{text,audio,multimodal}/` are detected automatically from the script path.
+- **Checkpoints**: name convention with a timestamp `{Model}_{dataset}_model_{YYYYMMDD_HHMMSS}.{pt|pkl}` (sklearn artifacts — `{...}_{scaler|vectorizer}_{ts}.pkl`); loading looks for the latest timestamped file, otherwise falls back to the legacy `{Model}_{dataset}_model.{pt|pkl}` without a timestamp; folders `checkpoints/{text,audio,multimodal}/` are detected automatically from the script path.
 - **Modes**: `--mode train|load|auto|smoke` — shared by all models (`cli_utils.dispatch_mode`).

@@ -25,7 +25,7 @@ Text models are evaluated on `dusha_resd_test` (6616 samples) in the `text_model
 
 ## Evaluation of pretrained models
 
-Evaluation scripts and checkpoints (`checkpoints/pretrained/`) are not part of the repository (`.gitignore`), but the aggregated evaluation results (`*_eval_*.json`) are committed. The evaluation was run on `dusha_resd_test` (6616 samples, audio modality; see corpus composition in [`CORPUS.md`](../../../CORPUS.md)). Detailed description of each model and its metrics — in the `pretrained_models_analise.ipynb` notebook:
+Evaluation scripts and checkpoints (`checkpoints/pretrained/`) are not part of the repository (`.gitignore`), but the aggregated evaluation results (`*_eval_*.json`) are committed. The evaluation was run on `dusha_resd_test` (6616 samples, audio modality; see corpus composition in [`CORPUS.en.md`](../../../CORPUS.en.md)). Detailed description of each model and its metrics — in the `pretrained_models_analise.ipynb` notebook:
 
 | Model | Source | Test Acc | F1-macro |
 |---|---|---|---|
@@ -35,7 +35,7 @@ Evaluation scripts and checkpoints (`checkpoints/pretrained/`) are not part of t
 
 > Sources and licenses of the pretrained models — [`SOURCES.en.md`](../../../SOURCES.en.md).
 
-HuBERT embeddings are further used in late fusion (see [`multimodal/README.md`](../multimodal/README.md)).
+HuBERT embeddings are further used in late fusion (see [`multimodal/README.en.md`](../multimodal/README.en.md)).
 
 ## Run
 

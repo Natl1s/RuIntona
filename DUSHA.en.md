@@ -4,7 +4,7 @@
 
 Dusha is a **bi-modal corpus** of Russian speech designed for Speech Emotion Recognition (SER) tasks. The dataset consists of about **300 000 audio recordings** (~350 hours) with transcripts and emotional labels and, at the time of publication, was the largest open bi-modal collection for SER. Emotions correspond to four basic classes typical for a dialog with a virtual assistant: **Happiness (Positive), Sadness, Anger and Neutral** emotion.
 
-> **Note on derived corpora.** The experiments in this repository mostly run on a combined corpus built from Dusha and the [RESD](RESD.md) dataset (Aniemore, Hugging Face). See [CORPUS.md](CORPUS.md) for a description of the corpora and the rules for building them.
+> **Note on derived corpora.** The experiments in this repository mostly run on a combined corpus built from Dusha and the [RESD.en](./RESD.en.md) dataset (Aniemore, Hugging Face). See [CORPUS.en.md](./CORPUS.en.md) for a description of the corpora and the rules for building them.
 
 > Consolidated sources of all third-party components (models + datasets) — [`SOURCES.en.md`](./SOURCES.en.md).
 
@@ -37,7 +37,7 @@ The dataset consists of two subsets:
 
 - The data is annotated on a crowdsourcing platform; each recording is labeled by several annotators.
 - Final labels are aggregated with the **Dawid-Skene** mechanism (accounts for annotator competence).
-- This repository uses the confidence threshold **0.9** → processing output is stored in `processed_dataset_090` (see [`ruintona/data_processing/README.md`](ruintona/data_processing/README.md)).
+- This repository uses the confidence threshold **0.9** → processing output is stored in `processed_dataset_090` (see [`ruintona/data_processing/README.en.md`](ruintona/data_processing/README.en.md)).
 
 ## Downloads
 
@@ -52,7 +52,7 @@ The dataset consists of two subsets:
 
 ## Usage in this repository
 
-Raw data processing pipeline: mel-spectrograms (`features/*.npy`), Dawid-Skene label aggregation, aggregated manifests `crowd_{train,test}.jsonl` / `podcast_{train,test}.jsonl` → balanced sets → LMDB databases. See [CORPUS.md](CORPUS.md) for the full build chain and corpora description.
+Raw data processing pipeline: mel-spectrograms (`features/*.npy`), Dawid-Skene label aggregation, aggregated manifests `crowd_{train,test}.jsonl` / `podcast_{train,test}.jsonl` → balanced sets → LMDB databases. See [CORPUS.en.md](CORPUS.en.md) for the full build chain and corpora description.
 
 ## Attribution in this repository
 

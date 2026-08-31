@@ -75,8 +75,8 @@ poetry run python ruintona/my_experiments/audio_models/baseline/random_forest.py
 
 ## Артефакты
 
-- sklearn-модели сохраняются в `checkpoints/audio/`: `{Модель}_{датасет}_model.pkl` + `{...}_scaler.pkl`, отчёт `{...}_training_report.txt`.
-- PyTorch: `{Модель}_{датасет}_model.pt` (+ бэкап с меткой времени).
+- sklearn-модели сохраняются в `checkpoints/audio/` с временной меткой: `{Модель}_{датасет}_model_{timestamp}.pkl` + `{...}_scaler_{timestamp}.pkl`, отчёт `{...}_training_report.txt`.
+- PyTorch: `{Модель}_{датасет}_model_{timestamp}.pt` (временная метка делает имя уникальным — отдельные бэкапы не создаются).
 - Метаданные всех экспериментов: `checkpoints/experiments.csv`.
 
 ## Результаты (аудио-модели)

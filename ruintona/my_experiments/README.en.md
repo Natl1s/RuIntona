@@ -9,6 +9,7 @@ Speech emotion recognition experiments: **text**, **audio** and **multimodal** m
 - [Data](#data)
 - [Common CLI](#common-cli)
 - [Configs](#configs)
+- [Hyperparameters](#hyperparameters)
 - [Checkpoints](#checkpoints)
 - [Inference and demo](#inference-and-demo)
 - [Results](#results)
@@ -48,7 +49,7 @@ cp ruintona/my_experiments/data.json.example ruintona/my_experiments/data.json
 | `combine_balanced_small` | 30% of the full set | 20474 | 1863 | fast runs, wav2vec2 warm-start |
 | `dusha_resd` | combine_balanced + RESD | 69119 | 6616 | **most models** (RuBERT, LogReg, Random Forest default+tuned, SVM, openSMILE+XGBoost, early/late fusion, HuBERT+RuBERT late fusion, foundation models) |
 
-More on the corpora, their composition and building rules from `aggregated_dataset` — [`CORPUS.md`](../../CORPUS.md) (in the repository root).
+More on the corpora, their composition and building rules from `aggregated_dataset` — [`CORPUS.en.md`](../../CORPUS.en.md) (in the repository root).
 
 ### LMDB record format
 
@@ -92,14 +93,19 @@ poetry run python ruintona/my_experiments/audio_models/baseline/svm.py --mode lo
 
 ## Configs
 
-JSON hyperparameter configs live in [`ruintona/configs/`](../configs/README.md). A config is applied to arguments that still hold their defaults; explicit CLI flags take precedence.
+JSON hyperparameter configs live in [`ruintona/configs/`](../configs/README.en.md). A config is applied to arguments that still hold their defaults; explicit CLI flags take precedence.
+
+## Hyperparameters
+
+A summary of hyperparameters for all models, the tuning methodology (RandomizedSearchCV for Random Forest, Optuna TPE for CNN-BiLSTM, α sweep for late fusion) and references to configs — in [`HYPERPARAMETERS.md`](./HYPERPARAMETERS.md).
 
 ## Checkpoints
 
 - Models are saved into `ruintona/my_experiments/checkpoints/{text,audio,multimodal}/`.
-- File name: `{Model}_{dataset}_model.{pt|pkl}` (e.g. `CNN_BiLSTM_combine_balanced_train_model.pt`).
-- Timestamped backups: `{Model}_{dataset}_model_{YYYYMMDD_HHMMSS}.{pt|pkl}`.
-- sklearn models additionally save artifacts: `{...}_scaler.pkl` / `{...}_vectorizer.pkl`.
+- Every training run is saved as a separate file with a timestamp: `{Model}_{dataset}_model_{YYYYMMDD_HHMMSS}.{pt|pkl}` (e.g. `CNN_BiLSTM_combine_balanced_train_model_20260813_120000.pt`). The timestamp makes the name unique — separate "backups" are no longer created.
+- When hyperparameter tuning retrains the model (`--mode tune`), it is saved as `{Model}_tuned_{dataset}_model_{ts}.{pt|pkl}` (e.g. `CNN_BiLSTM_tuned_combine_balanced_train_model_{ts}.pt`).
+- sklearn models additionally save artifacts with the same timestamp: `{...}_scaler_{ts}.pkl` / `{...}_vectorizer_{ts}.pkl`.
+- Loading looks for the **latest** timestamped checkpoint; if none exist, it falls back to the legacy file `{Model}_{dataset}_model.{pt|pkl}` (the old convention without a timestamp). So old models and models restored under the old name keep loading unchanged.
 - Training metadata is written to `checkpoints/experiments.csv`, text reports to `{...}_training_report.txt`.
 - **The `checkpoints/` folder is gitignored** — weights are published separately.
 
@@ -115,13 +121,13 @@ poetry run python ruintona/my_experiments/inference.py --model late-fusion \
     --text "шестьдесят тысяч тенге сколько будет стоить"
 ```
 
-Demo notebook: [`ruintona/DEMO/`](../DEMO/README.md).
+Demo notebook: [`ruintona/DEMO/`](../DEMO/README.en.md).
 
 ## Results
 
 ### Ready-made solutions (pretrained, no tuning)
 
-Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.md`](./model_analise/README.md), results — `checkpoints/pretrained/*_eval_*.json`.
+Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 samples) — they were not trained by us. Detailed description and sources — [`model_analise/README.en.md`](./model_analise/README.en.md), results — `checkpoints/pretrained/*_eval_*.json`.
 
 | Model | Train | Test | Test Acc | F1-macro |
 |---|---|---|---|---|
@@ -168,7 +174,7 @@ Open models from Hugging Face, evaluated zero-shot on `dusha_resd_test` (6616 sa
 poetry run pytest ruintona/my_experiments/tests/ -v
 ```
 
-Smoke tests run every model in `--mode smoke` on synthetic LMDBs. Details: [`tests/README.md`](./tests/README.md).
+Smoke tests run every model in `--mode smoke` on synthetic LMDBs. Details: [`tests/README.en.md`](./tests/README.en.md).
 
 ## Documentation index
 
@@ -177,8 +183,9 @@ Smoke tests run every model in `--mode smoke` on synthetic LMDBs. Details: [`tes
 | Text models | [`text_models/README.en.md`](./text_models/README.en.md) |
 | Audio models | [`audio_models/README.en.md`](./audio_models/README.en.md) |
 | Multimodal models | [`multimodal/README.en.md`](./multimodal/README.en.md) |
-| Utilities | [`utils/README.md`](./utils/README.md) |
-| Configs | [`../configs/README.md`](../configs/README.md) |
+| Utilities | [`utils/README.en.md`](./utils/README.en.md) |
+| Configs | [`../configs/README.en.md`](../configs/README.en.md) |
+| Hyperparameters | [`HYPERPARAMETERS.md`](./HYPERPARAMETERS.md) |
 | Data analysis | [`data_analise/README.en.md`](./data_analise/README.en.md) |
 | Model analysis | [`model_analise/README.en.md`](./model_analise/README.en.md) |
 | Demo | [`../DEMO/README.en.md`](../DEMO/README.en.md) |

@@ -121,7 +121,6 @@ RESD parquet (Aniemore/resd_annotated)
 
 ## Известные особенности
 
-- **Расхождение JSONL ↔ LMDB.** Из-за фильтра podcast в `lmdb_convert.py` длины LMDB меньше числа строк JSONL. Например, в `combine_balanced_train.jsonl` 89943 строк, а в LMDB — 68203 записи (см. [`make_data_scripts/README.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md) — фильтр podcast и размеры корпусов).
 - **Частота дискретизации RESD неоднородна** (16 кГц / 44.1 кГц) — `lmdb_convert.py` ресемплит всё в 16 кГц.
 
 ## Ссылки

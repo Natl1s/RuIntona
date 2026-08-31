@@ -10,10 +10,10 @@ Interactive demo of inference of trained models on a single example: **audio** (
 |---|---|
 | `demo.ipynb` | Demo notebook: multimodal inference, modality comparison, visualization |
 | `data/001ce26c07c20eaa0d666b824c6c6924.wav` | Sample audio recording |
-
-> **Data license.** The sample in `data/*.wav` and the transcript `example1.json` are taken from the Dusha dataset and are distributed under the Dusha/Golos license (attribution + share-alike), see [`DUSHA.md`](../../DUSHA.md). The demo code is MIT (`LICENSE`).
 | `data/example1.json` | Sample transcript for the audio |
 | `results/demo_results.png` | Visualization of class probabilities per modality |
+
+> **Data license.** The sample in `data/*.wav` and the transcript `example1.json` are taken from the Dusha dataset and are distributed under the Dusha/Golos license (attribution + share-alike), see [`DUSHA.en.md`](../../DUSHA.en.md). The demo code is MIT (`LICENSE`).
 
 ## Run
 
@@ -25,4 +25,4 @@ First model load takes ~1–2 minutes (RuBERT ~714 MB), then models are cached. 
 
 ## From the CLI
 
-The same inference is available from the CLI — see `ruintona/my_experiments/inference.py` and [`my_experiments/README.md`](../my_experiments/README.md).
+The same inference is available from the CLI — see `ruintona/my_experiments/inference.py` and [`my_experiments/README.en.md`](../my_experiments/README.en.md).

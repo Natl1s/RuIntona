@@ -2,8 +2,8 @@
 
 This repository trains and evaluates models on corpora built from two source datasets:
 
-- **Dusha** (Sber / Salute Developers) — see [DUSHA.md](DUSHA.md)
-- **RESD** (Aniemore, Hugging Face) — see [RESD.md](RESD.md)
+- **Dusha** (Sber / Salute Developers) — see [DUSHA.en.md](DUSHA.en.md)
+- **RESD** (Aniemore, Hugging Face) — see [RESD.en.md](RESD.en.md)
 
 All artifacts live under `ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/`.
 
@@ -13,8 +13,8 @@ All artifacts live under `ruintona/data_processing/dataset/processed_dataset_090
 
 The corpora inherit the licenses of their source datasets:
 
-- **`combine_balanced`** / **`combine_balanced_small`** (Dusha only): Dusha/Golos license (attribution + share-alike) — text in [`license/`](./license/), description in [`DUSHA.md`](DUSHA.md).
-- **`dusha_resd`** (Dusha + RESD): Dusha/Golos for the Dusha part and MIT for the RESD part (see [`RESD.md`](RESD.md)).
+- **`combine_balanced`** / **`combine_balanced_small`** (Dusha only): Dusha/Golos license (attribution + share-alike) — text in [`license/`](./license/), description in [`DUSHA.en.md`](DUSHA.en.md).
+- **`dusha_resd`** (Dusha + RESD): Dusha/Golos for the Dusha part and MIT for the RESD part (see [`RESD.en.md`](RESD.en.md)).
 
 When redistributing the corpora or derived artifacts, keep the attribution and license texts of both parts.
 
@@ -117,17 +117,13 @@ Plus a metadata key `b"__len__"` with the record count.
 | Late fusion HuBERT + RuBERT (α=0.5) | `combine_balanced` |
 | Foundation models (Whisper, WavLM-BERT, HuBERT) | `combine_balanced` |
 
-Detailed description and sources of the foundation models (Whisper, WavLM-BERT, HuBERT) — [`model_analise/README.md`](./ruintona/my_experiments/model_analise/README.md).
+Detailed description and sources of the foundation models (Whisper, WavLM-BERT, HuBERT) — [`model_analise/README.en.md`](./ruintona/my_experiments/model_analise/README.en.md).
 
 ## Known caveats
 
-- **JSONL ↔ LMDB mismatch.** Because of the podcast filter in `lmdb_convert.py`, LMDB lengths are smaller than the JSONL line counts. E.g. `combine_balanced_train.jsonl` has 89943 lines but the LMDB has 68203 records (see [`make_data_scripts/README.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md), which documents the podcast filter and corpus sizes).
-- **On-disk JSONL may be stale/truncated.** Rebuild the manifests before re-converting; check line counts against the LMDB `__len__`.
 - **RESD sample rate is not uniform** (16 kHz / 44.1 kHz) — `lmdb_convert.py` resamples everything to 16 kHz.
-- **`make_manifest.py` is an empty stub** and is not used.
-
 ## References
 
-- Build scripts: [`make_data_scripts/README.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.md)
+- Build scripts: [`make_data_scripts/README.en.md`](ruintona/data_processing/dataset/processed_dataset_090/aggregated_dataset/make_data_scripts/README.en.md)
 - HuggingFace datasets in `ruintona/data_processing/dataset/hug_dataset/`: `make_raw.py`, `dataset_stats.py`, `add_missing_spectrograms.py`
-- Raw processing pipeline: [`data_processing/README.md`](ruintona/data_processing/README.md)
+- Raw processing pipeline: [`data_processing/README.en.md`](ruintona/data_processing/README.en.md)

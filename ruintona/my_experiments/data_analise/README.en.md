@@ -16,7 +16,7 @@ Jupyter notebooks with exploratory data analysis (EDA) of the Dusha dataset and 
 poetry run jupyter notebook ruintona/my_experiments/data_analise/
 ```
 
-Notebooks read data from JSONL/CSV manifests (see `data_processing/dataset/processed_dataset_090/aggregated_dataset/`) and/or LMDB corpora (see `CORPUS.md`). Data paths are set at the top of each notebook and should be adjusted to the local dataset location (see `my_experiments/data.json`).
+Notebooks read data from JSONL/CSV manifests (see `data_processing/dataset/processed_dataset_090/aggregated_dataset/`) and/or LMDB corpora (see `CORPUS.en.md`). Data paths are set at the top of each notebook and should be adjusted to the local dataset location (see `my_experiments/data.json`).
 
 ## Output files
 

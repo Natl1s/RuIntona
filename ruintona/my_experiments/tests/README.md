@@ -13,7 +13,8 @@ Smoke-тесты моделей: запуск каждого скрипта в �
 | `test_smoke_audio.py` | Smoke-тесты аудио-моделей |
 | `test_smoke_text.py` | Smoke-тесты текстовых моделей |
 | `test_smoke_multimodal.py` | Smoke-тесты мультимодальных моделей (early fusion) |
-| `test_model_io.py` | Save/load чекпоинтов PyTorch (единый формат + legacy `state_dict`) |
+| `test_model_io.py` | Загрузка PyTorch-чекпоинтов (numpy-глобалы / fallback при `weights_only`) |
+| `test_pretrained.py` | Пути `utils/pretrained.py` (FastText) |
 
 Покрытие `test_smoke_audio.py`: `logreg`, `svm`, `random-forest`, `cnn`, `cnn-bilstm`.
 Покрытие `test_smoke_text.py`: `tfidf-logreg`, `embeddings-logreg`, `bilstm`, `rubert`.
