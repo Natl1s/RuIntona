@@ -108,7 +108,18 @@ JSON-конфиги гиперпараметров лежат в [`ruintona/conf
 - Загрузка ищет **последний** чекпоинт с timestamp; если таковых нет — legacy-файл `{Model}_{dataset}_model.{pt|pkl}` (старая конвенция без времени). Т.е. старые модели и модели, восстановленные под старым именем, продолжают загружаться без изменений.
 - Метаданные обучения пишутся в `checkpoints/experiments.csv`, текстовые отчёты — `{...}_training_report.txt`.
 - **Папка `checkpoints/` в `.gitignore`** — веса публикуются отдельно.
-- **Публикация весов на Hugging Face**: обученные модели опубликованы в коллекции **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>). Ссылки на репозитории, model cards, `LICENSE`/`NOTICE` и скрипт заливки — в [`hf/README.md`](./hf/README.md), `hf/cards/`.
+- **Модели на Hugging Face**: обученные веса опубликованы в коллекции **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>):
+
+  | Модель | Репозиторий HF | Лицензия весов |
+  |---|---|---|
+  | RuBERT (текст) | <https://huggingface.co/Natlis/rubert-emotion-classification-ru> | Apache-2.0 |
+  | CNN-BiLSTM (аудио) | <https://huggingface.co/Natlis/cnn-bilstm-emotion-classification-ru> | CC BY-SA 4.0 |
+  | CNN (аудио, baseline) | <https://huggingface.co/Natlis/cnn-emotion-classification-ru> | CC BY-SA 4.0 |
+  | openSMILE + XGBoost (аудио) | <https://huggingface.co/Natlis/opensmile-xgboost-emotion-classification-ru> | CC BY-SA 4.0 |
+  | SVM RBF (аудио, baseline) | <https://huggingface.co/Natlis/svm-emotion-classification-ru> | CC BY-SA 4.0 |
+  | Late fusion HuBERT+RuBERT | <https://huggingface.co/Natlis/hubert-rubert-late-fusion-emotion-classification-ru> | CC BY-SA 4.0 |
+
+  Метрики, гиперпараметры и инструкции по загрузке — в model cards каждого репозитория (файлы `README.md`, `LICENSE`, `NOTICE`).
 
 Конвенции разрешения путей чекпоинтов — в `utils/config_utils.py` (`resolve_model_path`, `checkpoints_dir_for`).
 

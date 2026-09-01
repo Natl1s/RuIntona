@@ -1,4 +1,0 @@
-# Веса не коммитим в git — они публикуются на Hugging Face Hub через hf/upload.py
-**/*.pt
-**/*.pkl
-**/*.joblib
