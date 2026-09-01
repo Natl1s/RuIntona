@@ -1,0 +1,27 @@
+{
+    "model_class": "EmotionClassifier",
+    "backbone_name": "DeepPavlov/rubert-base-cased",
+    "num_classes": 4,
+    "stage1_epochs": 1,
+    "epochs": 15,
+    "batch_size": 16,
+    "grad_accum_steps": 8,
+    "max_len": 128,
+    "dropout": 0.2,
+    "lr": 2e-05,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "loss_name": "ce",
+    "focal_gamma": 2.0,
+    "label_smoothing": 0.05,
+    "use_class_weights": true,
+    "val_size": 0.2,
+    "fp16": false,
+    "seed": 42,
+    "train": "dusha_resd_train (69119)",
+    "test": "dusha_resd_test (6616)",
+    "metrics": {
+        "accuracy": 0.586,
+        "f1_macro": 0.601
+    }
+}

@@ -108,6 +108,7 @@ JSON-конфиги гиперпараметров лежат в [`ruintona/conf
 - Загрузка ищет **последний** чекпоинт с timestamp; если таковых нет — legacy-файл `{Model}_{dataset}_model.{pt|pkl}` (старая конвенция без времени). Т.е. старые модели и модели, восстановленные под старым именем, продолжают загружаться без изменений.
 - Метаданные обучения пишутся в `checkpoints/experiments.csv`, текстовые отчёты — `{...}_training_report.txt`.
 - **Папка `checkpoints/` в `.gitignore`** — веса публикуются отдельно.
+- **Публикация весов на Hugging Face**: обученные модели опубликованы в коллекции **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>). Ссылки на репозитории, model cards, `LICENSE`/`NOTICE` и скрипт заливки — в [`hf/README.md`](./hf/README.md), `hf/cards/`.
 
 Конвенции разрешения путей чекпоинтов — в `utils/config_utils.py` (`resolve_model_path`, `checkpoints_dir_for`).
 

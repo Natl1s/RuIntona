@@ -1,0 +1,25 @@
+{
+    "method": "late_fusion (weighted probability averaging)",
+    "formula": "probs_fused = alpha * probs_audio + (1 - alpha) * probs_text",
+    "alpha": 0.5,
+    "audio_model": "xbgoose/hubert-speech-emotion-recognition-russian-dusha-finetuned",
+    "feature_extractor": "facebook/hubert-large-ls960-ft",
+    "text_model": "Natlis/rubert-emotion-classification-ru (fine-tune DeepPavlov/rubert-base-cased)",
+    "seed": 42,
+    "metrics_val": {
+        "val_split": "20% от dusha_resd_train",
+        "accuracy": 0.8796,
+        "f1_macro": 0.8871
+    },
+    "metrics_test_combine_balanced": {
+        "test": "combine_balanced_test",
+        "accuracy": 0.8339,
+        "f1_macro": 0.8432
+    },
+    "metrics_test_dusha_resd": {
+        "test": "dusha_resd_test",
+        "accuracy": 0.822,
+        "f1_macro": 0.830
+    },
+    "full_report": "late_fusion_hubert_rubert_weights.json"
+}

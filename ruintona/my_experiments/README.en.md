@@ -108,6 +108,7 @@ A summary of hyperparameters for all models, the tuning methodology (RandomizedS
 - Loading looks for the **latest** timestamped checkpoint; if none exist, it falls back to the legacy file `{Model}_{dataset}_model.{pt|pkl}` (the old convention without a timestamp). So old models and models restored under the old name keep loading unchanged.
 - Training metadata is written to `checkpoints/experiments.csv`, text reports to `{...}_training_report.txt`.
 - **The `checkpoints/` folder is gitignored** — weights are published separately.
+- **Weights on Hugging Face**: published models live in the collection **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>). Links to repos, model cards, `LICENSE`/`NOTICE` and the upload script — in [`hf/README.md`](./hf/README.md), `hf/cards/`.
 
 Checkpoint path resolution conventions — in `utils/config_utils.py` (`resolve_model_path`, `checkpoints_dir_for`).
 

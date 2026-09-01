@@ -61,7 +61,7 @@ poetry run python ruintona/my_experiments/inference.py --model audio --audio sam
 poetry run python ruintona/my_experiments/inference.py --model text --text "я очень рад сегодня"
 ```
 
-> **Примечание.** Инференс и демо требуют обученных чекпоинтов моделей в `ruintona/my_experiments/checkpoints/`. Веса не включаются в репозиторий (см. `.gitignore`): перед демо их нужно получить — обучить модели по инструкциям в [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) либо загрузить отдельно публикуемые веса.
+> **Примечание.** Инференс и демо требуют обученных чекпоинтов моделей в `ruintona/my_experiments/checkpoints/`. Веса не включаются в репозиторий (см. `.gitignore`): перед демо их нужно получить — обучить модели по инструкциям в [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) либо скачать опубликованные веса с Hugging Face (коллекция **RuIntona SER**: <https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>; карточки, лицензии и инструкции — [`ruintona/my_experiments/hf/README.md`](./ruintona/my_experiments/hf/README.md)).
 
 Интерактивная версия — ноутбук [`ruintona/DEMO/demo.ipynb`](./ruintona/DEMO/demo.ipynb).
 
