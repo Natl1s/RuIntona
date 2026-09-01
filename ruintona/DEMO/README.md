@@ -21,8 +21,26 @@
 poetry run jupyter notebook ruintona/DEMO/demo.ipynb
 ```
 
-Первая загрузка моделей занимает ~1–2 минуты (RuBERT ~714 MB), далее модели кэшируются. Требуются обученные чекпоинты: CNN-BiLSTM (`checkpoints/audio/`) и RuBERT (`checkpoints/text/`).
+Первая загрузка моделей занимает ~1–2 минуты (RuBERT ~714 MB), далее модели кэшируются. Если чекпоинтов нет в `ruintona/my_experiments/checkpoints/`, они **автоматически скачиваются с Hugging Face** (коллекция **RuIntona SER**, кэш — `checkpoints/hf/`); отключить скачивание можно флагом `--no-download`.
 
 ## Из командной строки
 
-Тот же инференс доступен из CLI — см. `ruintona/my_experiments/inference.py` и [`my_experiments/README.md`](../my_experiments/README.md).
+Тот же инференс доступен из `ruintona/my_experiments/inference.py` и для **ваших собственных** аудио/текста. Отсутствующие веса скачиваются с Hugging Face автоматически.
+
+```bash
+# Мультимодально (аудио + текст, late-fusion)
+poetry run python ruintona/my_experiments/inference.py --model late-fusion \
+    --audio ruintona/DEMO/data/001ce26c07c20eaa0d666b824c6c6924.wav \
+    --text "шестьдесят тысяч тенге сколько будет стоить"
+
+# Только аудио (укажите путь к своему .wav/.mp3)
+poetry run python ruintona/my_experiments/inference.py --model audio --audio /path/to/your.wav
+
+# Только текст
+poetry run python ruintona/my_experiments/inference.py --model text --text "я очень рад сегодня"
+
+# Без скачивания весов (только локальные чекпоинты)
+poetry run python ruintona/my_experiments/inference.py --model audio --audio /path/to/your.wav --no-download
+```
+
+Справка по CLI и реестр моделей — `--help` и [`my_experiments/README.md`](../my_experiments/README.md).

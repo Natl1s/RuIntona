@@ -108,7 +108,7 @@ JSON-конфиги гиперпараметров лежат в [`ruintona/conf
 - Загрузка ищет **последний** чекпоинт с timestamp; если таковых нет — legacy-файл `{Model}_{dataset}_model.{pt|pkl}` (старая конвенция без времени). Т.е. старые модели и модели, восстановленные под старым именем, продолжают загружаться без изменений.
 - Метаданные обучения пишутся в `checkpoints/experiments.csv`, текстовые отчёты — `{...}_training_report.txt`.
 - **Папка `checkpoints/` в `.gitignore`** — веса публикуются отдельно.
-- **Модели на Hugging Face**: обученные веса опубликованы в коллекции **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>):
+- **Модели на Hugging Face**: обученные веса опубликованы в коллекции **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>). Если чекпоинта нет локально, `inference.py` **автоматически скачивает его** с Hugging Face в `checkpoints/hf/{repo_id}/` (переиспользуется при следующих запусках); отключение — флаг `--no-download` (см. `utils/hf_models.py`):
 
   | Модель | Репозиторий HF | Лицензия весов |
   |---|---|---|
@@ -134,6 +134,8 @@ poetry run python ruintona/my_experiments/inference.py --model late-fusion \
 ```
 
 Демо-ноутбук: [`ruintona/DEMO/`](../DEMO/README.md).
+
+> Веса при отсутствии локальных чекпоинтов скачиваются с Hugging Face автоматически (см. «Чекпоинты» выше); флаг `--no-download` — только локальные файлы.
 
 ## Результаты
 

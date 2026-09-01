@@ -3,17 +3,23 @@
 
 Единая точка для предсказания эмоции по аудиофайлу и/или тексту.
 
+Если чекпоинта нет локально, он автоматически скачивается с Hugging Face
+(коллекция «RuIntona SER»). Отключить скачивание: --no-download.
+
 Примеры:
     # Мультимодально (аудио + текст)
-    python ruintona/my_experiments/inference.py --model late-fusion \
+    poetry run python ruintona/my_experiments/inference.py --model late-fusion \
         --audio ruintona/DEMO/data/001ce26c07c20eaa0d666b824c6c6924.wav \
         --text "шестьдесят тысяч тенге сколько будет стоить"
 
     # Только аудио
-    python ruintona/my_experiments/inference.py --model audio --audio sample.wav
+    poetry run python ruintona/my_experiments/inference.py --model audio --audio sample.wav
 
     # Только текст
-    python ruintona/my_experiments/inference.py --model text --text "привет!"
+    poetry run python ruintona/my_experiments/inference.py --model text --text "привет!"
+
+    # Без скачивания (только локальные чекпоинты)
+    poetry run python ruintona/my_experiments/inference.py --model audio --audio sample.wav --no-download
 """
 
 from __future__ import annotations
@@ -24,6 +30,17 @@ from functools import lru_cache
 from pathlib import Path
 
 import librosa
+import numpy as np
+import torch
+
+from ruintona.my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
+from ruintona.my_experiments.multimodal.late_fusion.Late_Fusion_CNN_BiLSTM_RuBERT import (
+    load_audio_model as _load_audio_model,
+)
+from ruintona.my_experiments.text_models.transformers.RuBERT import EmotionClassifier
+from ruintona.my_experiments.utils.config_utils import CHECKPOINTS_DIR, TARGET_NAMES, find_pretrained_model
+from ruintona.my_experiments.utils.hf_models import ensure_checkpoint
+from ruintona.my_experiments.utils.model_io import load_torch_with_weights
 
 # RuBERT загружается как BertModel без MLM-головы (cls.*) — убираем шумный
 # ворнинг про неиспользуемые веса, не трогая остальные сообщения transformers.
@@ -45,16 +62,6 @@ def _silence_unused_weights_warning() -> None:
             logger.addFilter(silence)
             for handler in logger.handlers:
                 handler.addFilter(silence)
-import numpy as np
-import torch
-
-from ruintona.my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
-from ruintona.my_experiments.multimodal.late_fusion.Late_Fusion_CNN_BiLSTM_RuBERT import (
-    load_audio_model as _load_audio_model,
-)
-from ruintona.my_experiments.text_models.transformers.RuBERT import EmotionClassifier
-from ruintona.my_experiments.utils.config_utils import CHECKPOINTS_DIR, TARGET_NAMES, find_pretrained_model
-from ruintona.my_experiments.utils.model_io import load_torch_with_weights
 
 # ---------------------------------------------------------------------------
 # Пути к обученным моделям
@@ -69,6 +76,10 @@ TEXT_MODEL_PATH = (
     or CHECKPOINTS_DIR / "text" / "RuBERT_dusha_resd_train_model.pt"
 )
 TOKENIZER_DIR = CHECKPOINTS_DIR / "text" / "RuBERT_dusha_resd_train_tokenizer"
+
+# Если True (по умолчанию), отсутствующий локально чекпоинт скачивается
+# с Hugging Face. Флаг CLI --no-download переключает на False.
+AUTO_DOWNLOAD = True
 
 DEFAULT_ALPHA = 0.5
 
@@ -113,9 +124,10 @@ def load_audio(path: str | Path) -> np.ndarray:
 
 @lru_cache(maxsize=1)
 def _get_audio_model() -> EmotionCNNBiLSTM:
+    model_path = ensure_checkpoint("audio", download=AUTO_DOWNLOAD, local_paths=[AUDIO_MODEL_PATH])
     print("Загрузка аудио-модели CNN-BiLSTM...")
     device = torch.device("cpu")
-    return _load_audio_model(AUDIO_MODEL_PATH, device)
+    return _load_audio_model(model_path, device)
 
 
 @lru_cache(maxsize=1)
@@ -123,10 +135,9 @@ def _get_text_model() -> tuple[EmotionClassifier, object, int]:
     """Возвращает (модель RuBERT, токенизатор, max_len)."""
     print("Загрузка текстовой модели RuBERT (~714 MB)...")
     device = torch.device("cpu")
-    if not TEXT_MODEL_PATH.exists():
-        raise FileNotFoundError(f"Чекпоинт RuBERT не найден: {TEXT_MODEL_PATH}")
+    model_path = ensure_checkpoint("text", download=AUTO_DOWNLOAD, local_paths=[TEXT_MODEL_PATH])
 
-    checkpoint = load_torch_with_weights(TEXT_MODEL_PATH, map_location=device)
+    checkpoint = load_torch_with_weights(model_path, map_location=device)
     model_params = checkpoint.get("model_params", {})
     if not model_params:
         raise ValueError("В чекпоинте RuBERT нет model_params.")
@@ -269,8 +280,12 @@ def _format_result(result: dict) -> str:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    global AUTO_DOWNLOAD
     parser = argparse.ArgumentParser(
-        description="Инференс моделей RuIntona (audio / text / late-fusion)."
+        description=(
+            "Инференс моделей RuIntona (audio / text / late-fusion). "
+            "Отсутствующие чекпоинты автоматически скачиваются с Hugging Face."
+        )
     )
     parser.add_argument(
         "--model",
@@ -288,11 +303,19 @@ def main() -> None:
         help="Вес аудио в late-fusion (по умолчанию 0.5).",
     )
     parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Не скачивать чекпоинты с Hugging Face: только локальные файлы.",
+    )
+    parser.add_argument(
         "--list",
         action="store_true",
         help="Показать доступные модели и выйти.",
     )
     args = parser.parse_args()
+
+    if args.no_download:
+        AUTO_DOWNLOAD = False
 
     if args.list:
         print("Доступные модели:")

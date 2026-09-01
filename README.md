@@ -61,7 +61,7 @@ poetry run python ruintona/my_experiments/inference.py --model audio --audio sam
 poetry run python ruintona/my_experiments/inference.py --model text --text "я очень рад сегодня"
 ```
 
-> **Примечание.** Инференс и демо требуют обученных чекпоинтов моделей в `ruintona/my_experiments/checkpoints/`. Веса не включаются в репозиторий (см. `.gitignore`): перед демо их нужно получить — обучить модели по инструкциям в [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md) либо скачать опубликованные веса с Hugging Face (коллекция **RuIntona SER**: <https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>; ссылки на модели — там же в разделе «Чекпоинты»).
+> **Примечание.** Веса не включаются в репозиторий (см. `.gitignore`): при отсутствии локальных чекпоинтов `inference.py` **автоматически скачивает** опубликованные веса с Hugging Face (коллекция **RuIntona SER**: <https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>; ссылки на модели — в [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md), раздел «Чекпоинты»). После первого скачивания веса кэшируются в `checkpoints/hf/` и работают офлайн; отключить автозагрузку — флаг `--no-download`. Альтернатива — обучить модели по инструкциям в [`ruintona/my_experiments/README.md`](./ruintona/my_experiments/README.md).
 
 Интерактивная версия — ноутбук [`ruintona/DEMO/demo.ipynb`](./ruintona/DEMO/demo.ipynb).
 

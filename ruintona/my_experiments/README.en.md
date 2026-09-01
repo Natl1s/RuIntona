@@ -108,7 +108,7 @@ A summary of hyperparameters for all models, the tuning methodology (RandomizedS
 - Loading looks for the **latest** timestamped checkpoint; if none exist, it falls back to the legacy file `{Model}_{dataset}_model.{pt|pkl}` (the old convention without a timestamp). So old models and models restored under the old name keep loading unchanged.
 - Training metadata is written to `checkpoints/experiments.csv`, text reports to `{...}_training_report.txt`.
 - **The `checkpoints/` folder is gitignored** — weights are published separately.
-- **Models on Hugging Face**: trained weights are published in the collection **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>):
+- **Models on Hugging Face**: trained weights are published in the collection **RuIntona SER** (<https://huggingface.co/collections/Natlis/ruintona-ser-6a96d7cd6f9979ac35d1b505>). If a checkpoint is missing locally, `inference.py` **automatically downloads it** from Hugging Face to `checkpoints/hf/{repo_id}/` (reused on later runs); disable with the `--no-download` flag (see `utils/hf_models.py`):
 
   | Model | HF repo | License |
   |---|---|---|
@@ -134,6 +134,8 @@ poetry run python ruintona/my_experiments/inference.py --model late-fusion \
 ```
 
 Demo notebook: [`ruintona/DEMO/`](../DEMO/README.en.md).
+
+> Weights are auto-downloaded from Hugging Face when local checkpoints are missing (see "Checkpoints" above); `--no-download` — local files only.
 
 ## Results
 
