@@ -1,8 +1,6 @@
 import argparse
 import builtins
 import json
-import random
-import re
 from datetime import datetime
 from pathlib import Path
 
@@ -26,11 +24,10 @@ from ruintona.my_experiments.audio_models.CNN.CNN_BiLSTM import EmotionCNNBiLSTM
 from ruintona.my_experiments.utils.lmdb_utils import get_lmdb_length, open_lmdb_readonly, parse_label_to_index, safe_pickle_loads
 from ruintona.my_experiments.text_models.transformers.RuBERT import EmotionClassifier
 from ruintona.my_experiments.utils.config_utils import (
-    MY_EXPERIMENTS_DIR, TARGET_NAMES, CHECKPOINTS_DIR,
-    find_pretrained_model, resolve_model_path,
-    load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths,
+    TARGET_NAMES, CHECKPOINTS_DIR,
+    find_pretrained_model, load_experiment_config, apply_config_to_args, add_config_arg, add_data_path_args, resolve_data_paths,
 )
-from ruintona.my_experiments.utils.model_io import load_pytorch_model, load_sklearn_model, load_torch_with_weights
+from ruintona.my_experiments.utils.model_io import load_torch_with_weights
 from ruintona.my_experiments.utils.torch_utils import set_seed, resolve_device
 from ruintona.my_experiments.utils.text_utils import extract_text
 
@@ -160,42 +157,49 @@ def fusion_collate_fn(batch):
     )
 
 
-def _parse_training_params_from_report(report_path: Path) -> dict:
-    if not report_path.exists():
-        return {}
-    text = report_path.read_text(encoding="utf-8")
-    match = re.search(r"training_params:\s*(\{.*?\})\s*test_metrics:", text, flags=re.S)
-    if not match:
-        return {}
-    try:
-        return json.loads(match.group(1))
-    except json.JSONDecodeError:
-        return {}
-
-
 def load_audio_model(audio_model_path: Path, device: torch.device) -> EmotionCNNBiLSTM:
     model_path = Path(audio_model_path)
     if not model_path.exists():
         raise FileNotFoundError(f"Не найден аудио-чекпоинт: {model_path}")
 
-    report_path = model_path.parent / f"{model_path.stem}_training_report.txt"
-    training_params = _parse_training_params_from_report(report_path)
+    checkpoint = load_torch_with_weights(model_path, map_location=device)
+    if not isinstance(checkpoint, dict) or "model_state_dict" not in checkpoint:
+        raise ValueError(
+            "Аудио-чекпоинт не самодостаточен: не найден ключ 'model_state_dict'. "
+            "Используйте чекпоинт в формате save_pytorch_model (или скачанный с Hugging Face): "
+            "веса и model_params должны лежать в одном файле."
+        )
+
+    model_params = checkpoint.get("model_params")
+    if not model_params:
+        raise ValueError(
+            "В аудио-чекпоинте нет 'model_params' — архитектуру модели невозможно восстановить. "
+            "Файлы в старом (raw) формате не поддерживаются: используйте самодостаточные чекпоинты."
+        )
+
+    required = {
+        "n_classes",
+        "conv_channels",
+        "lstm_hidden_size",
+        "lstm_layers",
+        "lstm_dropout",
+        "classifier_dropout",
+        "bidirectional",
+    }
+    missing = sorted(required - set(model_params))
+    if missing:
+        raise ValueError(f"В model_params аудио-чекпоинта отсутствуют ключи: {missing}")
 
     model = EmotionCNNBiLSTM(
-        n_classes=len(TARGET_NAMES),
-        lstm_hidden_size=int(training_params.get("lstm_hidden_size", 128)),
-        lstm_layers=int(training_params.get("lstm_layers", 2)),
-        lstm_dropout=float(training_params.get("lstm_dropout", 0.2)),
-        bidirectional=bool(training_params.get("bidirectional", True)),
+        n_classes=int(model_params["n_classes"]),
+        conv_channels=list(model_params["conv_channels"]),
+        lstm_hidden_size=int(model_params["lstm_hidden_size"]),
+        lstm_layers=int(model_params["lstm_layers"]),
+        lstm_dropout=float(model_params["lstm_dropout"]),
+        classifier_dropout=float(model_params["classifier_dropout"]),
+        bidirectional=bool(model_params["bidirectional"]),
     )
-    state = load_torch_with_weights(model_path, map_location=device)
-    if isinstance(state, dict) and "model_state_dict" in state:
-        state = state["model_state_dict"]
-    incompat = model.load_state_dict(state, strict=False)
-    if incompat.missing_keys:
-        print(f"WARNING: missing keys in audio state_dict: {incompat.missing_keys}")
-    if incompat.unexpected_keys:
-        print(f"WARNING: unexpected keys in audio state_dict: {incompat.unexpected_keys}")
+    model.load_state_dict(checkpoint["model_state_dict"], strict=True)
     model = model.to(device)
     model.eval()
     return model
@@ -221,11 +225,7 @@ def load_text_model(
         dropout=model_params["dropout"],
         classifier_hidden_size=model_params.get("classifier_hidden_size"),
     )
-    incompat = model.load_state_dict(checkpoint["model_state_dict"], strict=False)
-    if incompat.missing_keys:
-        print(f"WARNING: missing keys in text state_dict: {incompat.missing_keys}")
-    if incompat.unexpected_keys:
-        print(f"WARNING: unexpected keys in text state_dict: {incompat.unexpected_keys}")
+    model.load_state_dict(checkpoint["model_state_dict"], strict=True)
     model = model.to(device)
     model.eval()
 
