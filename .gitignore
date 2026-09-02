@@ -18,6 +18,11 @@ ruintona/my_experiments/checkpoints/pretrained/*
 # Локальная конфигурация с абсолютным путём к датасету
 ruintona/my_experiments/data.json
 
+# Артефакты smoke-тестов (генерируются при каждом прогоне pytest).
+# ВАЖНО: настоящие результаты экспериментов используют ту же схему имени —
+# их можно коммитить как git add -f.
+ruintona/my_experiments/multimodal/early_fusion/results/early_fusion_baseline_results_*.json
+
 # Теоретические заметки и локальные данные (репозиторий о них не должен знать)
 docs/
 ruintona/my_experiments/colab/
