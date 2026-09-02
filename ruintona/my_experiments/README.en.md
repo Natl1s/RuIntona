@@ -2,6 +2,8 @@
 
 Speech emotion recognition experiments: **text**, **audio** and **multimodal** models, plus inference, data analysis and smoke tests.
 
+> The research motivation, problem statement, data selection, evaluation of pretrained solutions, hypothesis, results and their statistical significance — in [`RESEARCH.en.md`](./RESEARCH.en.md). It is the main scientific document describing the purpose of this section.
+
 > Sources and licenses of third-party pretrained models and datasets — [`SOURCES.en.md`](../../SOURCES.en.md).
 
 ## Table of contents
@@ -194,6 +196,7 @@ Smoke tests run every model in `--mode smoke` on synthetic LMDBs. Details: [`tes
 
 | Section | README |
 |---|---|
+| **Research motivation, hypothesis and results** | [`RESEARCH.en.md`](./RESEARCH.en.md) |
 | Text models | [`text_models/README.en.md`](./text_models/README.en.md) |
 | Audio models | [`audio_models/README.en.md`](./audio_models/README.en.md) |
 | Multimodal models | [`multimodal/README.en.md`](./multimodal/README.en.md) |
