@@ -11,7 +11,7 @@ Research project on **Speech Emotion Recognition (SER) for Russian speech** buil
 
 The project contains full training and evaluation pipelines for three modalities: **text**, **audio**, and **multimodal (audio + text)** — from raw data processing to inference and a demo notebook.
 
-> The research motivation, problem statement, data selection, evaluation of pretrained solutions, hypothesis, experiments, their results and statistical significance — in [`RESEARCH.en.md`](./ruintona/my_experiments/RESEARCH.en.md). That is the key document explaining why this research is being conducted.
+> .The research motivation, problem statement, data selection, evaluation of pretrained solutions, hypothesis, experiments, their results and statistical significance — in [`RESEARCH.en.md`](./ruintona/my_experiments/RESEARCH.en.md). That is the key document explaining why this research is being conducted.
 
 > **Experiment corpus.** Most models are trained and evaluated on the combined corpus **Dusha (Sber) + [RESD.en](./RESD.en.md) (Aniemore, Hugging Face)** (`dusha_resd`). The corpora and the rules for building them from `data_processing/dataset/processed_dataset_090/aggregated_dataset` are described in [CORPUS.en.md](./CORPUS.en.md).
 
