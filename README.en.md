@@ -23,21 +23,25 @@ The project contains full training and evaluation pipelines for three modalities
 poetry install
 ```
 
-Optional dependency groups:
+Optional dependency extras:
 
 ```bash
 # PyTorch + HuggingFace Transformers (BiLSTM, RuBERT, Wav2Vec2)
-poetry install --with ml
+poetry install --extras ml
 
 # Data analysis (data_analise/ notebooks)
-poetry install --with analysis
+poetry install --extras analysis
 
 # Audio models: openSMILE + XGBoost
-poetry install --with audio-extra
+poetry install --extras audio-extra
 
 # All optional dependencies at once
-poetry install --with all
+poetry install --extras all
 ```
+
+> **Note.** `ml`/`analysis`/`audio-extra`/`all` are declared as *optional extras* in `[project.optional-dependencies]`, so they are installed with the `--extras <name>` flag, not `--with` (the latter is only for `[dependency-groups]`, e.g. `dev`). Inference and demo (`inference.py`, `DEMO/demo.ipynb`) require `--extras ml`.
+
+> **Disk space.** Installing `--extras ml` pulls in PyTorch with its CUDA libraries (torch + torchaudio + transformers + nvidia-* ≈ **7–8 GB**); running the demo additionally downloads model weights from Hugging Face (~1.2 GB, cached in `checkpoints/hf/`). Plan for **≥ 15 GB of free space**. On a clean Ubuntu make sure the root partition (or the directory holding the venv) is large enough — stock cloud images with a ~2.5 GB root partition are not sufficient.
 
 ### 2. Configure data paths
 
