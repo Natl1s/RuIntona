@@ -41,7 +41,7 @@ poetry install --extras all
 
 > **Примечание.** `ml`/`analysis`/`audio-extra`/`all` объявлены как *optional extras* в `[project.optional-dependencies]`, поэтому устанавливаются флагом `--extras <имя>`, а не `--with` (последний — только для `[dependency-groups]`, например `dev`). Для инференса и демо (`inference.py`, `DEMO/demo.ipynb`) обязателен `--extras ml`.
 
-> **Место на диске.** Установка `--extras ml` тянет PyTorch вместе с CUDA-библиотеками (torch + torchaudio + transformers + nvidia-\* ≈ **7–8 ГБ**), плюс при запуске демо качаются веса моделей с Hugging Face (~1.2 ГБ, кэшируются в `checkpoints/hf/`). Закладывайте **≥ 15 ГБ свободного места**. На чистой Ubuntu важно, чтобы корневой раздел (или каталог, куда ставится venv) был достаточно большим — встроенные cloud-образы с разделом ~2.5 ГБ не подходят.
+> **Место на диске.** Установка `--extras ml` тянет PyTorch вместе с CUDA-библиотеками (torch + torchaudio + transformers + nvidia-\* ≈ **7–8 ГБ**), плюс при запуске демо качаются веса моделей с Hugging Face (~1.2 ГБ, кэшируются в `checkpoints/hf/`). Закладывайте **≥ 15 ГБ свободного места**.
 
 ### 2. Настройка путей к данным
 

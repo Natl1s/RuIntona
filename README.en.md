@@ -41,8 +41,7 @@ poetry install --extras all
 
 > **Note.** `ml`/`analysis`/`audio-extra`/`all` are declared as *optional extras* in `[project.optional-dependencies]`, so they are installed with the `--extras <name>` flag, not `--with` (the latter is only for `[dependency-groups]`, e.g. `dev`). Inference and demo (`inference.py`, `DEMO/demo.ipynb`) require `--extras ml`.
 
-> **Disk space.** Installing `--extras ml` pulls in PyTorch with its CUDA libraries (torch + torchaudio + transformers + nvidia-* ≈ **7–8 GB**); running the demo additionally downloads model weights from Hugging Face (~1.2 GB, cached in `checkpoints/hf/`). Plan for **≥ 15 GB of free space**. On a clean Ubuntu make sure the root partition (or the directory holding the venv) is large enough — stock cloud images with a ~2.5 GB root partition are not sufficient.
-
+> **Disk space.** Installing `--extras ml` pulls in PyTorch with its CUDA libraries (torch + torchaudio + transformers + nvidia-* ≈ **7–8 GB**); running the demo additionally downloads model weights from Hugging Face (~1.2 GB, cached in `checkpoints/hf/`). Plan for **≥ 15 GB of free space**.
 ### 2. Configure data paths
 
 Dataset paths and the train/test LMDB locations are stored in `ruintona/my_experiments/data.json` (gitignored, as it contains absolute paths).
